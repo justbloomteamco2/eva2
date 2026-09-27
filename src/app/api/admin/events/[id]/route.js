@@ -79,14 +79,22 @@ export async function PATCH(request, { params }) {
     if (input.response) return input.response;
     const update = { ...input.data };
     const client = getSupabaseAdmin();
-    let previousPosterUrl = null;
+    const { data: current, error: currentError } = await client.from("events")
+      .select("id,poster_url,registration_type,registration_link").eq("id", id).maybeSingle();
+    if (currentError) throw new Error(`Event could not be read before update: ${currentError.message}`);
+    if (!current) return json({ error: "Event not found." }, 404);
+
+    const registrationType = input.data.registration_type ?? current.registration_type;
+    const registrationLink = Object.hasOwn(input.data, "registration_link")
+      ? input.data.registration_link
+      : current.registration_link;
+    if (registrationType === "paid" && !registrationLink) {
+      return json({ error: "A registration link is required for paid events." }, 400);
+    }
+
+    const previousPosterUrl = current.poster_url;
     let uploadedPosterUrl = null;
     if (input.poster) {
-      const { data: current, error: currentError } = await client.from("events")
-        .select("id,poster_url").eq("id", id).maybeSingle();
-      if (currentError) throw new Error(`Event could not be read before update: ${currentError.message}`);
-      if (!current) return json({ error: "Event not found." }, 404);
-      previousPosterUrl = current.poster_url;
       uploadedPosterUrl = await uploadEventPoster(input.poster);
       update.poster_url = uploadedPosterUrl;
     }

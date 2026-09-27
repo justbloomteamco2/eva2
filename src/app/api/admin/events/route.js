@@ -24,7 +24,15 @@ const eventFields = z.object({
   status: z.enum(["draft", "published"])
 }).strict();
 
-const createSchema = eventFields.extend({});
+const createSchema = eventFields.superRefine((event, context) => {
+  if (event.registration_type === "paid" && !event.registration_link) {
+    context.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ["registration_link"],
+      message: "A registration link is required for paid events."
+    });
+  }
+});
 const updateSchema = eventFields.partial().strict().refine((value) => Object.keys(value).length > 0, {
   message: "Provide at least one event field to update."
 });

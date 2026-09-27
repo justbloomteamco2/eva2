@@ -102,7 +102,7 @@ export default function HeroReelCarousel() {
           <strong>{activeClip.title}</strong><small>{activeClip.detail} <ArrowUpRight size={13} /></small>
         </a>
       </div>
-      <div className="hero-reel__controls" aria-label="Campaign carousel controls">
+      <div className="hero-reel__controls" role="group" aria-label="Campaign carousel controls">
         <button type="button" onClick={() => moveClip(-1)} aria-label="Previous campaign clip"><ArrowLeft size={17} /></button>
         <button type="button" onClick={() => setPaused((current) => !current)} aria-label={paused ? "Play campaign carousel" : "Pause campaign carousel"}>{paused ? <Play size={16} /> : <Pause size={16} />}</button>
         <button type="button" onClick={() => moveClip(1)} aria-label="Next campaign clip"><ArrowRight size={17} /></button>

@@ -37,19 +37,20 @@ export default function FeedbackForm() {
   return (
     <form className="feedback-form" onSubmit={submit} aria-describedby="feedback-status">
       <div className="feedback-form__fields">
-        <label>Your name<input name="name" required minLength={2} maxLength={100} autoComplete="name" /></label>
-        <label>Event attended<input name="event" required minLength={2} maxLength={160} placeholder="Which Bardapure moment?" /></label>
+        <label>Your name <span className="form-field__meta">Required</span><input name="name" required minLength={2} maxLength={100} autoComplete="name" placeholder="Your name" /></label>
+        <label>Event attended <span className="form-field__meta">Required</span><input name="event" required minLength={2} maxLength={200} placeholder="Event or campaign name" /></label>
         <fieldset className="feedback-rating">
-          <legend>Your rating</legend>
-          <div role="group" aria-label="Rating from 1 to 5 stars">
+          <legend>Your rating <span className="form-field__meta">Required</span></legend>
+          <div role="group" aria-label="Rating from 1 to 5 stars" aria-describedby="rating-help">
             {[1, 2, 3, 4, 5].map((value) => (
               <button key={value} type="button" aria-pressed={rating === value} aria-label={`${value} ${value === 1 ? "star" : "stars"}`} onClick={() => setRating(value)}>
                 <Star size={22} fill={value <= rating ? "currentColor" : "none"} />
               </button>
             ))}
           </div>
+          <span id="rating-help" className="feedback-rating__hint">{rating ? `${rating} out of 5 selected` : "Choose a rating"}</span>
         </fieldset>
-        <label className="feedback-form__message">A quick note<textarea name="message" required minLength={5} maxLength={2000} rows={3} placeholder="What did you enjoy?" /></label>
+        <label className="feedback-form__message">A quick note <span className="form-field__meta">Required · At least 10 characters</span><textarea name="message" required minLength={10} maxLength={2000} rows={3} placeholder="What stood out? Your note helps us make the next one even better." /></label>
         <label className="honeypot" aria-hidden="true">Leave empty<input name="website" tabIndex={-1} autoComplete="off" /></label>
       </div>
       <div className="feedback-form__submit">
