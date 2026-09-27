@@ -1,9 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { ArrowUpRight, Upload } from "lucide-react";
 import { creatorCategories, creatorInterests } from "../data/content";
 import { MAX_CREATOR_PHOTO_BYTES } from "../lib/upload-limits";
+import { useToast } from "./ToastProvider";
+import { readApiResponse } from "../lib/client-api";
 
 const emptyForm = {
   name: "",
@@ -21,11 +23,18 @@ const emptyForm = {
   website: ""
 };
 
-export default function CreatorRegistrationForm() {
-  const [values, setValues] = useState(emptyForm);
+export default function CreatorRegistrationForm({ initialCategory = "", onCategoryChange }) {
+  const notify = useToast();
+  const [values, setValues] = useState({ ...emptyForm, category: initialCategory });
   const [photo, setPhoto] = useState(null);
   const [status, setStatus] = useState("idle");
   const [message, setMessage] = useState("");
+
+  useEffect(() => {
+    setValues((previous) => previous.category === initialCategory
+      ? previous
+      : { ...previous, category: initialCategory });
+  }, [initialCategory]);
 
   function selectPhoto(event) {
     const selected = event.target.files?.[0] || null;
@@ -35,6 +44,7 @@ export default function CreatorRegistrationForm() {
       setPhoto(null);
       setStatus("error");
       setMessage("Choose a profile photo smaller than 5 MB.");
+      notify("Choose a profile photo smaller than 5 MB.", "error");
       return;
     }
     setStatus("idle");
@@ -43,6 +53,7 @@ export default function CreatorRegistrationForm() {
 
   function update(event) {
     const { name, value, checked } = event.target;
+    if (name === "category") onCategoryChange?.(value);
     setValues((previous) => {
       if (name === "interests") {
         const interests = checked
@@ -69,29 +80,37 @@ export default function CreatorRegistrationForm() {
     setMessage("");
     try {
       const response = await fetch("/api/creators", { method: "POST", body: formData });
-      const result = await response.json();
+      const result = await readApiResponse(response);
       if (!response.ok) throw new Error(result.error || "We couldn’t send your application.");
       setValues(emptyForm);
+      onCategoryChange?.("");
       setPhoto(null);
       formElement.reset();
       setStatus("success");
-      setMessage("Welcome to the Bardapure Productions® Network! Your profile is in. We’ll reach out when relevant opportunities come up.");
+      setMessage(result.notificationPending
+        ? "Your application is saved. Its notification email is queued for retry."
+        : "Welcome to the Bardapure Productions® Network! Your profile is in. We’ll reach out when relevant opportunities come up.");
+      notify(result.notificationPending
+        ? "Application saved. Email delivery is queued for retry."
+        : "Your creator application was submitted.");
     } catch (error) {
       setStatus("error");
-      setMessage(error.message || "We couldn’t send your application. Please try again.");
+      const errorMessage = error.message || "We couldn’t send your application. Please try again.";
+      setMessage(errorMessage);
+      notify(errorMessage, "error");
     }
   }
 
   return (
     <form className="creator-form" onSubmit={submit} aria-describedby="creator-form-status">
       <div className="creator-form__intro">
-        <h3>Tell us about <em>you.</em></h3>
-        <p>Join free. Share the essentials and the opportunities you’re looking for. Usually takes about two minutes.</p>
+        <h3>Job / creator <em>application.</em></h3>
+        <p>Share your profile once. We’ll keep it on file and contact you when a relevant opportunity comes up.</p>
       </div>
       <div className="creator-form__grid">
         <div className="creator-form__section-heading"><span>01 / The essentials</span><small>Required to create your profile</small></div>
         <label>Full name <span className="form-field__meta">Required</span><input required name="name" autoComplete="name" minLength={2} maxLength={100} value={values.name} onChange={update} /></label>
-        <label>Phone number <span className="form-field__meta">Required</span><input required name="phone" type="tel" autoComplete="tel" inputMode="tel" pattern="[+0-9() .-]{8,20}" maxLength={20} placeholder="+91 98765 43210" value={values.phone} onChange={update} /></label>
+        <label>Phone number <span className="form-field__meta">Required</span><input required name="phone" type="tel" autoComplete="tel" inputMode="tel" pattern="[0-9+\(\) .\-]{8,20}" maxLength={20} placeholder="+91 98765 43210" value={values.phone} onChange={update} /></label>
         <label>Email address <span className="form-field__meta">Required</span><input required name="email" type="email" autoComplete="email" maxLength={254} value={values.email} onChange={update} /></label>
         <label>City <span className="form-field__meta">Required</span><input required name="city" autoComplete="address-level2" minLength={2} maxLength={100} placeholder="Where are you based?" value={values.city} onChange={update} /></label>
         <label>Age <span className="form-field__meta">18+ · Required</span><input required name="age" type="number" min={18} max={100} inputMode="numeric" value={values.age} onChange={update} /></label>

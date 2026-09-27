@@ -67,15 +67,17 @@ export async function POST(request) {
   }
 
   const { name, email, organisation, message, category } = parsed.data;
-  const { error: insertError } = await client.from("enquiries").insert({
-    name,
-    email,
-    organisation,
-    message,
-    category
-  });
-  if (insertError) {
-    console.error("Enquiry could not be saved:", insertError.message);
+  try {
+    const { error: insertError } = await client.from("enquiries").insert({
+      name,
+      email,
+      organisation,
+      message,
+      category
+    });
+    if (insertError) throw new Error(insertError.message);
+  } catch (error) {
+    console.error("Enquiry could not be saved:", error.message);
     return json({ error: "We couldn’t save your enquiry. Please try again or contact us on Instagram." }, 500);
   }
 

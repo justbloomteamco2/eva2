@@ -4,19 +4,19 @@ import { ArrowDown } from "lucide-react";
 import ButtonLink from "./ButtonLink";
 import HeroReelCarousel from "./HeroReelCarousel";
 
-export default function HeroSection() {
+export default function HeroSection({ content }) {
   return (
     <section className="festival-hero" id="home" aria-labelledby="hero-title">
       <HeroReelCarousel />
       <div className="festival-hero__grain" aria-hidden="true" />
       <div className="festival-hero__content">
-        <p className="festival-hero__eyebrow"><span>Independent creative production</span><span>Made for the main character energy</span></p>
-        <h1 id="hero-title">BARDAPURE<br /><em>PRODUCTIONS<sup>®</sup></em></h1>
+        <p className="festival-hero__eyebrow"><span>{content.eyebrowLeft}</span><span>{content.eyebrowRight}</span></p>
+        <h1 id="hero-title">{content.identity}<br /><em>{content.descriptor.replace(/®$/, "")}<sup>®</sup></em></h1>
         <div className="festival-hero__bottom">
-          <p>Explore your ambitions.<br /><span>We make culture move.</span></p>
+          <p>{content.tagline}<br /><span>{content.supportingLine}</span></p>
           <div className="festival-hero__actions">
             <ButtonLink href="/creators" variant="light">Join creator network</ButtonLink>
-            <ButtonLink href="/#contact" variant="dark">Partner with us</ButtonLink>
+            <ButtonLink href="/contact" variant="dark">Partner with us</ButtonLink>
           </div>
         </div>
       </div>

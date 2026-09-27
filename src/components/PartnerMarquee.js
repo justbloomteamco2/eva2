@@ -1,10 +1,9 @@
 import Image from "next/image";
-import { partnerNames } from "../data/content";
 
-function PartnerRun({ labelled = true }) {
+function PartnerRun({ partners, labelled = true }) {
   return (
     <div className="partner-marquee__run" aria-hidden={!labelled}>
-      {partnerNames.map((partner, index) => (
+      {partners.map((partner, index) => (
         <span className={`partner-marquee__mark partner-marquee__mark--${index % 6}`} key={partner}>
           {partner}
           <i aria-hidden="true">✳</i>
@@ -17,14 +16,15 @@ function PartnerRun({ labelled = true }) {
   );
 }
 
-export default function PartnerMarquee() {
+export default function PartnerMarquee({ partners }) {
+  if (!partners.length) return null;
   return (
     <section className="partner-marquee" aria-label="Campaign partners">
-      <div className="partner-marquee__label">Good company <span>we keep</span></div>
+      <div className="partner-marquee__label">Campaign <span>partners</span></div>
       <div className="partner-marquee__viewport">
         <div className="partner-marquee__track">
-          <PartnerRun />
-          <PartnerRun labelled={false} />
+          <PartnerRun partners={partners} />
+          <PartnerRun partners={partners} labelled={false} />
         </div>
       </div>
     </section>

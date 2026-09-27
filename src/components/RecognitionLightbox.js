@@ -31,13 +31,15 @@ export default function RecognitionLightbox({ items }) {
     };
   }, [selected, items.length]);
 
+  if (!items.length) return <p className="admin-empty">No recognition moments have been published yet.</p>;
+
   return (
     <>
       <div className="recognition-grid">
         {items.map((item, index) => (
           <button className="recognition-item" type="button" key={item.image} onClick={() => setSelected(index)}>
             <span className="recognition-item__image">
-              <Image src={item.image} alt={item.alt} fill sizes="(max-width: 760px) 72vw, 32vw" />
+              <Image src={item.image} alt={item.alt} fill sizes="(max-width: 760px) 72vw, 32vw" unoptimized />
               <span className="recognition-item__open">View recognition ↗</span>
             </span>
             <span className="recognition-item__caption">
@@ -53,7 +55,7 @@ export default function RecognitionLightbox({ items }) {
           <button type="button" className="lightbox__close" aria-label="Close recognition image" onClick={close}><X /></button>
           <button type="button" className="lightbox__arrow lightbox__arrow--left" aria-label="Previous recognition image" onClick={() => move(-1)}><ChevronLeft /></button>
           <figure className="lightbox__figure">
-            <Image src={items[selected].image} alt={items[selected].alt} width={800} height={1200} sizes="(max-width: 760px) 85vw, 74vw" />
+            <Image src={items[selected].image} alt={items[selected].alt} width={800} height={1200} sizes="(max-width: 760px) 85vw, 74vw" unoptimized />
             <figcaption>{items[selected].title}</figcaption>
           </figure>
           <button type="button" className="lightbox__arrow lightbox__arrow--right" aria-label="Next recognition image" onClick={() => move(1)}><ChevronRight /></button>

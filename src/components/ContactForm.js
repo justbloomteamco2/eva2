@@ -2,10 +2,13 @@
 
 import { useState } from "react";
 import { ArrowUpRight } from "lucide-react";
+import { useToast } from "./ToastProvider";
+import { readApiResponse } from "../lib/client-api";
 
 const initialState = { name: "", email: "", organisation: "", message: "", category: "Brand partnership", website: "" };
 
 export default function ContactForm({ category = "Brand partnership" }) {
+  const notify = useToast();
   const [values, setValues] = useState({ ...initialState, category });
   const [status, setStatus] = useState("idle");
   const [message, setMessage] = useState("");
@@ -25,14 +28,17 @@ export default function ContactForm({ category = "Brand partnership" }) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(values)
       });
-      const result = await response.json();
+      const result = await readApiResponse(response);
       if (!response.ok) throw new Error(result.error || "Something went wrong. Please try again.");
       setStatus("success");
       setMessage("Thank you. We’ll be in touch soon.");
       setValues({ ...initialState, category });
+      notify("Your enquiry was sent. We’ll be in touch soon.");
     } catch (error) {
+      const errorMessage = error.message || "We couldn’t send that just now. Please try again.";
       setStatus("error");
-      setMessage(error.message || "We couldn’t send that just now. Please try again.");
+      setMessage(errorMessage);
+      notify(errorMessage, "error");
     }
   }
 

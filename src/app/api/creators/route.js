@@ -2,7 +2,9 @@ import { randomUUID } from "node:crypto";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { creatorCategories, creatorInterests } from "../../../data/content";
+import { hasTrustedOrigin } from "../../../lib/http";
 import { allowRateLimitedRequest, getSupabaseAdmin } from "../../../lib/supabase-admin";
+import { sendCreatorApplicationCsvEmail } from "../../../lib/feedback-email";
 import { MAX_CREATOR_PHOTO_BYTES } from "../../../lib/upload-limits";
 
 export const runtime = "nodejs";
@@ -40,17 +42,6 @@ async function removeUnclaimedPhoto(client, photoPath) {
     if (error) console.error("Failed to remove an unclaimed creator photo:", error.message);
   } catch (error) {
     console.error("Failed to remove an unclaimed creator photo:", error.message);
-  }
-}
-
-function hasTrustedOrigin(request) {
-  const origin = request.headers.get("origin");
-  const host = request.headers.get("host");
-  if (!origin || !host) return false;
-  try {
-    return new URL(origin).host === host;
-  } catch {
-    return false;
   }
 }
 
@@ -106,7 +97,13 @@ export async function POST(request) {
     return json({ error: "Creator registration is temporarily unavailable. Please try again later." }, 503);
   }
 
-  const photoBuffer = Buffer.from(await photo.arrayBuffer());
+  let photoBuffer;
+  try {
+    photoBuffer = Buffer.from(await photo.arrayBuffer());
+  } catch (error) {
+    console.error("Creator profile photo could not be read:", error.message);
+    return json({ error: "We couldn’t read your photo. Please choose it again and retry." }, 400);
+  }
   if (!photoType.matches(photoBuffer)) return json({ error: "The photo contents don’t match the selected image format." }, 400);
 
   const photoPath = `${randomUUID()}.${photoType.extension}`;
@@ -128,9 +125,10 @@ export async function POST(request) {
     return json({ error: "We couldn’t save your photo. Please try again." }, 500);
   }
 
+  let application;
   let insertError;
   try {
-    ({ error: insertError } = await client.from("creator_registrations").insert({
+    ({ data: application, error: insertError } = await client.from("creator_registrations").insert({
       name: parsed.data.name,
       phone: parsed.data.phone,
       email: parsed.data.email,
@@ -144,7 +142,9 @@ export async function POST(request) {
       skills: parsed.data.skills,
       interests: parsed.data.interests,
       photo_path: photoPath
-    }));
+    })
+      .select("id, name, phone, email, city, age, category, instagram, portfolio, audience_size, languages, skills, interests, created_at")
+      .single());
   } catch (error) {
     await removeUnclaimedPhoto(client, photoPath);
     console.error("Creator registration could not be saved:", error.message);
@@ -156,5 +156,24 @@ export async function POST(request) {
     return json({ error: "We couldn’t save your profile. Please try again." }, 500);
   }
 
-  return json({ ok: true });
+  let notificationPending = false;
+  try {
+    const { error: attemptError } = await client.from("creator_registrations")
+      .update({ email_attempted_at: new Date().toISOString() })
+      .eq("id", application.id)
+      .is("email_sent_at", null);
+    if (attemptError) throw new Error(`Application email attempt could not be saved: ${attemptError.message}`);
+
+    await sendCreatorApplicationCsvEmail(application);
+    const { error: updateError } = await client.from("creator_registrations")
+      .update({ email_sent_at: new Date().toISOString() })
+      .eq("id", application.id)
+      .is("email_sent_at", null);
+    if (updateError) throw new Error(`Application email status could not be saved: ${updateError.message}`);
+  } catch (emailError) {
+    notificationPending = true;
+    console.error("Creator application email delivery failed:", emailError.message);
+  }
+
+  return json({ ok: true, notificationPending });
 }

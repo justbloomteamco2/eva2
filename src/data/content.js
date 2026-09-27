@@ -2,42 +2,42 @@ export const services = [
   {
     number: "01",
     title: "Brand activations",
-    description: "Campus and mall activations, roadshows, product launches and experiential campaigns."
+    description: "Campus, mall and product-launch experiences."
   },
   {
     number: "02",
     title: "Event management",
-    description: "Corporate and college events, creator meet-ups, concerts, festivals and special occasions."
+    description: "College events, creator meet-ups, festivals and launches."
   },
   {
     number: "03",
     title: "Advertising & branding",
-    description: "Outdoor advertising, campus branding, promotional campaigns and brand installations."
+    description: "Campus branding, outdoor media and campaign materials."
   },
   {
     number: "04",
     title: "Media production",
-    description: "Photography, videography, reels, promotional films, event aftermovies and commercial content."
+    description: "Photography, video, Reels and event recaps."
   },
   {
     number: "05",
     title: "Talent management",
-    description: "Connecting creators, influencers, models, actors, hosts, dancers and event professionals to opportunities."
+    description: "Creators, models, hosts, artists and event professionals."
   },
   {
     number: "06",
     title: "Influencer marketing",
-    description: "Creator-led campaigns, UGC, social media promotions, brand collaborations and activations."
+    description: "Influencer, UGC and social-first brand campaigns."
   },
   {
     number: "07",
     title: "Fashion & modelling",
-    description: "Model casting, fashion campaigns, portfolio shoots and fashion events."
+    description: "Casting, portfolio shoots and fashion campaigns."
   },
   {
     number: "08",
     title: "Film & creative production",
-    description: "Production and distribution support, line production, casting, location coordination, events and creative execution."
+    description: "Production support, casting and on-location coordination."
   }
 ];
 

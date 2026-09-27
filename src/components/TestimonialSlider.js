@@ -6,6 +6,7 @@ import Image from "next/image";
 
 export default function TestimonialSlider({ items }) {
   const [current, setCurrent] = useState(0);
+  if (!items.length) return <p className="admin-empty">No testimonials have been published yet.</p>;
   const testimonial = items[current];
   const next = () => setCurrent((value) => (value + 1) % items.length);
   const previous = () => setCurrent((value) => (value - 1 + items.length) % items.length);
@@ -20,7 +21,7 @@ export default function TestimonialSlider({ items }) {
         </div>
       </div>
       <div className="testimonial__image">
-        <Image src={testimonial.image} alt={`Recognition artwork naming ${testimonial.name}`} fill sizes="(max-width: 760px) 40vw, 28vw" />
+        <Image src={testimonial.image} alt={`Recognition artwork naming ${testimonial.name}`} fill sizes="(max-width: 760px) 40vw, 28vw" unoptimized />
       </div>
       <div className="testimonial__controls">
         <span className="testimonial__count">0{current + 1} <i /> 0{items.length}</span>

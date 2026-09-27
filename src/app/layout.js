@@ -1,4 +1,5 @@
 import "./globals.css";
+import ToastProvider from "../components/ToastProvider";
 
 export const metadata = {
   title: "Bardapure Productions® — We create experiences. We build connections.",
@@ -14,7 +15,7 @@ export const metadata = {
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
-      <body>{children}</body>
+      <body><ToastProvider>{children}</ToastProvider></body>
     </html>
   );
 }

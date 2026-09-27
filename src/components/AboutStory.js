@@ -1,20 +1,20 @@
 import Image from "next/image";
 import { ArrowUpRight } from "lucide-react";
-import { aboutInstagramPosts, featuredCampaign } from "../data/content";
 
-export function AboutStory() {
+export function AboutStory({ content }) {
+  const featuredCampaign = content.featuredCampaign;
   return (
     <>
       <section className="page-intro section-pad" id="about">
         <span className="eyebrow">01 / About Bardapure</span>
         <div className="about-layout">
-          <div className="about-portrait"><Image src="/images/founder-portrait-light.jpeg" alt="Bardapure founder at a public event" fill sizes="(max-width: 760px) 85vw, 34vw" /></div>
+          <div className="about-portrait"><Image src={content.portrait} alt="Bardapure founder at an event" fill sizes="(max-width: 760px) 85vw, 34vw" priority unoptimized /></div>
           <div className="intro__copy">
-            <h1>Good work<br />starts with<br /><em>people.</em></h1>
-            <p>Bardapure brings brands, creators and communities together to make meaningful experiences and campaigns.</p>
+            <h1>{content.headline}<br /><em>{content.highlight}</em></h1>
+            <p>{content.description}</p>
             <div className="about-pillars">
-              <article><span className="eyebrow">Our vision</span><p>A trusted home for talent, brands and opportunity.</p></article>
-              <article><span className="eyebrow">Our mission</span><p>Bring great people together to make memorable work.</p></article>
+              <article><span className="eyebrow">Our vision</span><p>{content.vision}</p></article>
+              <article><span className="eyebrow">Our mission</span><p>{content.mission}</p></article>
             </div>
           </div>
         </div>
@@ -22,33 +22,33 @@ export function AboutStory() {
       <section className="about-social section-pad" aria-labelledby="about-posts-title">
         <div className="about-social__intro">
           <span className="eyebrow">People make the work</span>
-          <h2 id="about-posts-title">Good energy.<br /><em>Real relationships.</em></h2>
-          <p>Moments of appreciation shared by the team.</p>
+          <h2 id="about-posts-title">{content.socialHeadline}<br /><em>{content.socialHighlight}</em></h2>
+          <p>{content.socialDescription}</p>
         </div>
         <div className="about-social__grid">
-          {aboutInstagramPosts.map((post) => (
-            <a className="about-post" key={post.href} href={post.href} target="_blank" rel="noreferrer">
-              <div className="about-post__image"><Image src={post.image} alt={post.alt} fill sizes="(max-width: 640px) 85vw, 35vw" /></div>
+          {content.posts.map((post) => (
+            <a className="about-post" key={post.href} href={post.href} target="_blank" rel="noreferrer" data-reveal>
+              <div className="about-post__image"><Image src={post.image} alt={post.alt} fill sizes="(max-width: 640px) 85vw, 35vw" unoptimized /></div>
               <div className="about-post__meta"><span className="eyebrow">{post.category}</span><span>{post.title}<ArrowUpRight size={15} /></span></div>
             </a>
           ))}
         </div>
       </section>
-      <FeaturedCampaign />
+      <FeaturedCampaign content={featuredCampaign} />
     </>
   );
 }
 
-export function FeaturedCampaign() {
+export function FeaturedCampaign({ content }) {
   return (
-    <section className="featured-campaign section-pad" id="recognition" aria-labelledby="current-campaign-title">
-      <div className="featured-campaign__image"><Image src={featuredCampaign.image} alt={featuredCampaign.alt} fill sizes="(max-width: 760px) 100vw, 58vw" /></div>
+    <section className="featured-campaign section-pad" id="recognition" aria-labelledby="current-campaign-title" data-reveal>
+      <div className="featured-campaign__image"><Image src={content.image} alt={content.alt} fill sizes="(max-width: 760px) 100vw, 58vw" unoptimized /></div>
       <div className="featured-campaign__copy">
         <span className="eyebrow">A fresh one from the field</span>
-        <span className="featured-campaign__tag">{featuredCampaign.category}</span>
-        <h2 id="current-campaign-title">{featuredCampaign.title}</h2>
-        <p>{featuredCampaign.description}</p>
-        <a className="text-link" href={featuredCampaign.href} target="_blank" rel="noreferrer">See the original post <ArrowUpRight size={16} /></a>
+        <span className="featured-campaign__tag">{content.category}</span>
+        <h2 id="current-campaign-title">{content.title}</h2>
+        <p>{content.description}</p>
+        <a className="text-link" href={content.href} target="_blank" rel="noreferrer">See the original post <ArrowUpRight size={16} /></a>
       </div>
     </section>
   );

@@ -1,2 +1,1 @@
 export const MAX_CREATOR_PHOTO_BYTES = 5 * 1024 * 1024;
-export const MAX_EVENT_POSTER_BYTES = 8 * 1024 * 1024;

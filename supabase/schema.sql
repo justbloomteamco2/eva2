@@ -28,7 +28,7 @@ alter table public.enquiries add constraint enquiries_category_check check (cate
 ));
 
 alter table public.enquiries enable row level security;
-revoke all on public.enquiries from anon, authenticated;
+revoke all on public.enquiries from public, anon, authenticated;
 grant insert, select on public.enquiries to service_role;
 
 create table if not exists public.creator_registrations (
@@ -78,7 +78,7 @@ create table if not exists public.creator_registrations (
 );
 
 alter table public.creator_registrations enable row level security;
-revoke all on public.creator_registrations from anon, authenticated;
+revoke all on public.creator_registrations from public, anon, authenticated;
 grant insert, select on public.creator_registrations to service_role;
 create index if not exists creator_registrations_photo_path_idx
   on public.creator_registrations (photo_path);
@@ -103,7 +103,7 @@ create table if not exists public.enquiry_rate_limits (
 );
 
 alter table public.enquiry_rate_limits enable row level security;
-revoke all on public.enquiry_rate_limits from anon, authenticated, service_role;
+revoke all on public.enquiry_rate_limits from public, anon, authenticated, service_role;
 
 create or replace function public.allow_enquiry_submission(requester_hash text)
 returns boolean
@@ -115,28 +115,28 @@ declare
   current_window public.enquiry_rate_limits%rowtype;
 begin
   insert into public.enquiry_rate_limits (requester_hash)
-  values (allow_enquiry_submission.requester_hash)
-  on conflict (requester_hash) do nothing;
+  values ($1)
+  on conflict do nothing;
 
   select * into current_window
   from public.enquiry_rate_limits
-  where enquiry_rate_limits.requester_hash = allow_enquiry_submission.requester_hash
+  where enquiry_rate_limits.requester_hash = $1
   for update;
 
-  if current_window.window_started_at < now() - interval '15 minutes' then
+  if current_window.window_started_at < now() - interval '5 minutes' then
     update public.enquiry_rate_limits
     set window_started_at = now(), submission_count = 1
-    where enquiry_rate_limits.requester_hash = allow_enquiry_submission.requester_hash;
+    where enquiry_rate_limits.requester_hash = $1;
     return true;
   end if;
 
-  if current_window.submission_count >= 5 then
+  if current_window.submission_count >= 3 then
     return false;
   end if;
 
   update public.enquiry_rate_limits
   set submission_count = submission_count + 1
-  where enquiry_rate_limits.requester_hash = allow_enquiry_submission.requester_hash;
+  where enquiry_rate_limits.requester_hash = $1;
   return true;
 end;
 $$;
@@ -173,9 +173,14 @@ alter table public.events alter column poster_url drop not null;
 create table if not exists public.feedback (
   id uuid primary key default gen_random_uuid(),
   name text not null check (char_length(name) between 2 and 100),
+  attendee_email text not null default '' check (char_length(attendee_email) <= 254),
   event text not null check (char_length(event) between 2 and 200),
+  event_date date,
   rating smallint not null check (rating between 1 and 5),
   message text not null check (char_length(message) between 10 and 2000),
+  would_attend_again text check (would_attend_again in ('yes', 'maybe', 'no')),
+  what_went_well text not null default '' check (char_length(what_went_well) <= 900),
+  what_to_improve text not null default '' check (char_length(what_to_improve) <= 900),
   created_at timestamptz not null default now()
 );
 
@@ -205,7 +210,65 @@ $$;
 alter table public.feedback enable row level security;
 revoke all on public.feedback from public, anon, authenticated;
 grant insert on public.feedback to service_role;
+alter table public.feedback
+  add column if not exists attendee_email text not null default '',
+  add column if not exists event_date date,
+  add column if not exists would_attend_again text,
+  add column if not exists what_went_well text not null default '',
+  add column if not exists what_to_improve text not null default '';
 alter table public.feedback alter column event set not null;
 alter table public.feedback drop constraint if exists feedback_event_attended_check;
 alter table public.feedback drop constraint if exists feedback_event_check;
 alter table public.feedback add constraint feedback_event_check check (char_length(event) between 2 and 200);
+alter table public.feedback drop constraint if exists feedback_would_attend_again_check;
+alter table public.feedback add constraint feedback_would_attend_again_check
+  check (would_attend_again is null or would_attend_again in ('yes', 'maybe', 'no'));
+alter table public.feedback drop constraint if exists feedback_attendee_email_check;
+alter table public.feedback add constraint feedback_attendee_email_check
+  check (char_length(attendee_email) <= 254);
+alter table public.feedback drop constraint if exists feedback_what_went_well_check;
+alter table public.feedback add constraint feedback_what_went_well_check
+  check (char_length(what_went_well) <= 900);
+alter table public.feedback drop constraint if exists feedback_what_to_improve_check;
+alter table public.feedback add constraint feedback_what_to_improve_check
+  check (char_length(what_to_improve) <= 900);
+
+alter table public.enquiries
+  add column if not exists status text not null default 'new',
+  add column if not exists updated_at timestamptz not null default now();
+alter table public.enquiries drop constraint if exists enquiries_status_check;
+alter table public.enquiries add constraint enquiries_status_check
+  check (status in ('new', 'contacted', 'qualified', 'closed', 'archived'));
+grant update on public.enquiries to service_role;
+create index if not exists enquiries_created_at_idx on public.enquiries (created_at desc);
+create index if not exists enquiries_status_created_at_idx on public.enquiries (status, created_at desc);
+
+alter table public.creator_registrations
+  add column if not exists status text not null default 'new',
+  add column if not exists updated_at timestamptz not null default now(),
+  add column if not exists email_sent_at timestamptz,
+  add column if not exists email_attempted_at timestamptz;
+alter table public.creator_registrations drop constraint if exists creator_registrations_status_check;
+alter table public.creator_registrations add constraint creator_registrations_status_check
+  check (status in ('new', 'contacted', 'qualified', 'closed', 'archived'));
+grant update on public.creator_registrations to service_role;
+create index if not exists creator_registrations_created_at_idx on public.creator_registrations (created_at desc);
+create index if not exists creator_registrations_status_created_at_idx on public.creator_registrations (status, created_at desc);
+create index if not exists creator_registrations_email_pending_idx
+  on public.creator_registrations (email_attempted_at, created_at, id)
+  where email_sent_at is null;
+
+alter table public.feedback
+  add column if not exists status text not null default 'new',
+  add column if not exists updated_at timestamptz not null default now(),
+  add column if not exists email_sent_at timestamptz,
+  add column if not exists email_attempted_at timestamptz;
+alter table public.feedback drop constraint if exists feedback_status_check;
+alter table public.feedback add constraint feedback_status_check
+  check (status in ('new', 'contacted', 'qualified', 'closed', 'archived'));
+grant select, update on public.feedback to service_role;
+create index if not exists feedback_created_at_idx on public.feedback (created_at desc);
+create index if not exists feedback_status_created_at_idx on public.feedback (status, created_at desc);
+create index if not exists feedback_email_pending_idx
+  on public.feedback (email_attempted_at, created_at, id)
+  where email_sent_at is null;

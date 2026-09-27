@@ -10,7 +10,7 @@ const links = [
   ["Events", "/events"],
   ["Creators", "/creators"],
   ["Recognition", "/about#recognition"],
-  ["Contact", "/#contact"]
+  ["Contact", "/contact"]
 ];
 
 export default function Navbar() {
@@ -34,16 +34,21 @@ export default function Navbar() {
     const closeOnDesktop = () => {
       if (!mobileLayout.matches) setOpen(false);
     };
+    const closeOnEscape = (event) => {
+      if (event.key === "Escape") setOpen(false);
+    };
     window.addEventListener("resize", closeOnDesktop);
+    window.addEventListener("keydown", closeOnEscape);
     mobileLayout.addEventListener("change", closeOnDesktop);
     return () => {
       window.removeEventListener("resize", closeOnDesktop);
+      window.removeEventListener("keydown", closeOnEscape);
       mobileLayout.removeEventListener("change", closeOnDesktop);
     };
   }, []);
 
   return (
-    <header className={`site-header site-header--global${scrolled ? " site-header--scrolled" : ""}`}>
+    <header className={`site-header site-header--global${scrolled ? " site-header--scrolled" : ""}${open ? " site-header--menu-open" : ""}`}>
       <Link className="wordmark" href="/" aria-label="Bardapure Productions home">
         <span>BARDAPURE</span>
         <span>PRODUCTIONS<sup>®</sup></span>
@@ -53,7 +58,7 @@ export default function Navbar() {
           <Link key={href} href={href}>{label}</Link>
         ))}
       </nav>
-      <Link className="header-cta" href="/#contact">Partner with us <span>↗</span></Link>
+      <Link className="header-cta" href="/contact">Partner with us <span>↗</span></Link>
       <button
         className="menu-toggle"
         type="button"
@@ -65,6 +70,9 @@ export default function Navbar() {
         {open ? <X /> : <Menu />}
       </button>
       <nav id="mobile-menu" className={`mobile-menu${open ? " is-open" : ""}`} aria-label="Mobile navigation" inert={!open}>
+        <Link className="mobile-menu__brand" href="/" onClick={() => setOpen(false)} aria-label="Bardapure Productions home">
+          <span>BARDAPURE</span><span>PRODUCTIONS<sup>®</sup> / MENU</span>
+        </Link>
         <div className="mobile-menu__links">
           {links.map(([label, href], index) => (
             <Link key={href} href={href} style={{ "--item-index": index }} onClick={() => setOpen(false)}>
@@ -72,7 +80,10 @@ export default function Navbar() {
             </Link>
           ))}
         </div>
-        <p>Good things start with a conversation.</p>
+        <div className="mobile-menu__footer">
+          <p>Planning a campaign, event or collaboration?</p>
+          <Link href="/contact" onClick={() => setOpen(false)}>Partner with us <span aria-hidden="true">↗</span></Link>
+        </div>
       </nav>
     </header>
   );

@@ -11,6 +11,7 @@ export default function UpcomingEvents({ compact = false, archived = false }) {
   const [totalPages, setTotalPages] = useState(1);
   const [total, setTotal] = useState(0);
   const [status, setStatus] = useState("loading");
+  const [retryCount, setRetryCount] = useState(0);
 
   useEffect(() => {
     let active = true;
@@ -33,10 +34,30 @@ export default function UpcomingEvents({ compact = false, archived = false }) {
         if (active) setStatus("error");
       });
     return () => { active = false; };
-  }, [archived, page]);
+  }, [archived, page, retryCount]);
 
-  if (status === "loading") return <div className="events-loading" role="status">Finding the next good thing…</div>;
-  if (status === "error") return <p className="events-load-error" role="status">{archived ? "The event archive is temporarily unavailable. Please check back soon." : "Upcoming events are temporarily unavailable. Please check back soon."}</p>;
+  if (status === "loading") {
+    return (
+      <div className="events-empty events-empty--loading" role="status">
+        <span className="events-empty__icon"><ArrowRight size={20} /></span>
+        <h3>Checking the calendar.</h3>
+        <p>Loading {archived ? "past events" : "upcoming plans"}.</p>
+      </div>
+    );
+  }
+  if (status === "error") {
+    return (
+      <div className="events-empty events-empty--error" role="alert">
+        <span className="events-empty__icon"><ArrowUpRight size={20} /></span>
+        <h3>The calendar is temporarily unavailable.</h3>
+        <p>We couldn’t load {archived ? "the event archive" : "upcoming plans"} just now. Please try again or follow us for announcements.</p>
+        <div className="events-empty__actions">
+          <button className="text-link" type="button" onClick={() => setRetryCount((current) => current + 1)}>Try again <ArrowRight size={15} /></button>
+          <a className="text-link" href="https://www.instagram.com/bardapure_production_official/" target="_blank" rel="noreferrer">Follow on Instagram <ArrowUpRight size={15} /></a>
+        </div>
+      </div>
+    );
+  }
   return (
     <>
       <EventsBoard
