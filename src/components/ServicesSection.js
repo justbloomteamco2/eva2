@@ -1,5 +1,6 @@
 import { ArrowUpRight, Target, PartyPopper, Megaphone, Clapperboard, Users, Smartphone, Camera, Film } from "lucide-react";
 import SectionIntro from "./SectionIntro";
+import MotionReveal from "./MotionReveal";
 
 const serviceIcons = [Target, PartyPopper, Megaphone, Clapperboard, Users, Smartphone, Camera, Film];
 
@@ -12,12 +13,12 @@ export default function ServicesSection({ items, compact = false }) {
         {visibleServices.map((service, index) => {
           const Icon = serviceIcons[index % serviceIcons.length];
           return (
-            <article className="service-row" key={service.number} data-reveal>
+            <MotionReveal as="article" className="service-row" key={service.number} delay={index * 0.06}>
               <span className="service-row__number">{service.number}</span>
               <Icon className="service-row__icon" aria-hidden="true" />
               <div className="service-row__copy"><h3>{service.title}</h3><p>{service.description.split(".")[0]}.</p></div>
               <ArrowUpRight className="service-row__arrow" aria-hidden="true" />
-            </article>
+            </MotionReveal>
           );
         })}
       </div>

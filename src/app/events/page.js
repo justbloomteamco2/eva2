@@ -3,6 +3,8 @@ import Link from "next/link";
 import SiteFrame from "../../components/SiteFrame";
 import UpcomingEvents from "../../components/UpcomingEvents";
 import FeedbackForm from "../../components/FeedbackForm";
+import { FeaturedCampaign } from "../../components/AboutStory";
+import { getPublicSiteContent } from "../../lib/site-content";
 
 export const dynamic = "force-dynamic";
 
@@ -11,13 +13,15 @@ export const metadata = {
   description: "Upcoming creator meet-ups, campus moments and events from Bardapure Productions."
 };
 
-export default function EventsPage() {
+export default async function EventsPage() {
+  const content = await getPublicSiteContent();
   return (
     <SiteFrame>
       <section className="events-page section-pad">
         <span className="eyebrow">Upcoming / Bardapure events</span>
         <div className="route-heading"><div><h1>Meet us<br /><em>in person.</em></h1></div><p>Creator meet-ups, campus activations and live experiences. Confirmed plans appear here first.</p></div>
         <div className="event-page-meta"><span><CalendarDays size={16} /> Upcoming plans</span><span><MapPin size={16} /> Across India</span></div>
+        <FeaturedCampaign content={content.about.featuredCampaign} variant="event" />
         <UpcomingEvents />
       </section>
       <section className="events-archive section-pad" aria-labelledby="events-archive-title">

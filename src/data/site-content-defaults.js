@@ -1,4 +1,4 @@
-import { aboutInstagramPosts, featuredCampaign, instagramPosts, partnerNames, recognitions, services, testimonials } from "./content";
+import { aboutInstagramPosts, featuredCampaign, instagramPosts, partnerNames, services, testimonials } from "./content";
 
 export const siteContentDefaults = {
   hero: {
@@ -24,7 +24,7 @@ export const siteContentDefaults = {
     portrait: "/images/founder-portrait-event.jpeg",
     socialHeadline: "People behind",
     socialHighlight: "the work.",
-    socialDescription: "Recognition and milestones shared by the team.",
+    socialDescription: "Recognition and milestones shared by the team, drawn only from the pinned posts on Bardapure’s Instagram.",
     posts: aboutInstagramPosts,
     featuredCampaign
   },
@@ -41,7 +41,6 @@ export const siteContentDefaults = {
   portfolio: instagramPosts,
   partners: partnerNames,
   testimonials,
-  recognition: recognitions,
   site_settings: {
     email: "",
     phone: "",

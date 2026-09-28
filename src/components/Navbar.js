@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { Menu, X } from "lucide-react";
 
 const links = [
@@ -9,7 +10,6 @@ const links = [
   ["Work", "/work"],
   ["Events", "/events"],
   ["Creators", "/creators"],
-  ["Recognition", "/about#recognition"],
   ["Contact", "/contact"]
 ];
 
@@ -50,8 +50,8 @@ export default function Navbar() {
   return (
     <header className={`site-header site-header--global${scrolled ? " site-header--scrolled" : ""}${open ? " site-header--menu-open" : ""}`}>
       <Link className="wordmark" href="/" aria-label="Bardapure Productions home">
-        <span>BARDAPURE</span>
-        <span>PRODUCTIONS<sup>®</sup></span>
+        <Image className="wordmark__logo" src="/images/bardapure-logo.png" alt="" width={48} height={48} priority />
+        <span className="wordmark__text"><span>BARDAPURE</span><span>PRODUCTIONS<sup>®</sup></span></span>
       </Link>
       <nav className="desktop-nav" aria-label="Main navigation">
         {links.map(([label, href]) => (
@@ -71,7 +71,8 @@ export default function Navbar() {
       </button>
       <nav id="mobile-menu" className={`mobile-menu${open ? " is-open" : ""}`} aria-label="Mobile navigation" inert={!open}>
         <Link className="mobile-menu__brand" href="/" onClick={() => setOpen(false)} aria-label="Bardapure Productions home">
-          <span>BARDAPURE</span><span>PRODUCTIONS<sup>®</sup> / MENU</span>
+          <Image className="wordmark__logo" src="/images/bardapure-logo.png" alt="" width={42} height={42} />
+          <span className="mobile-menu__brand-text"><span>BARDAPURE</span><span>PRODUCTIONS<sup>®</sup> / MENU</span></span>
         </Link>
         <div className="mobile-menu__links">
           {links.map(([label, href], index) => (
