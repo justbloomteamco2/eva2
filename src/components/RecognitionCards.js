@@ -25,11 +25,11 @@ function RecognitionCard({ post, index }) {
 
   return (
     <motion.a
-      className="about-post"
+      className={`about-post${post.format === "poster" ? " about-post--poster" : ""}`}
       href={post.href}
       target="_blank"
       rel="noreferrer"
-      aria-label={`${post.title}. Open the pinned Instagram post.`}
+      aria-label={`${post.title}. ${post.openLabel || "Open the pinned Instagram post."}`}
       style={{ rotateX, rotateY, transformStyle: "preserve-3d" }}
       onPointerMove={tilt}
       onPointerLeave={resetTilt}
@@ -41,8 +41,8 @@ function RecognitionCard({ post, index }) {
     >
       <span className="about-post__frame">
         <span className="about-post__image">
-          <Image src={post.image} alt={post.alt} fill sizes="(max-width: 640px) 85vw, 35vw" priority={index === 0} unoptimized />
-          <span className="about-post__open">Open pinned post <ArrowUpRight size={16} /></span>
+          <Image src={post.image} alt={post.alt} fill sizes="(max-width: 640px) 85vw, 35vw" priority={index === 0} />
+          <span className="about-post__open">{post.openLabel || "Open pinned post"} <ArrowUpRight size={16} /></span>
         </span>
         <span className="about-post__meta">
           <span className="eyebrow">{post.category}</span>

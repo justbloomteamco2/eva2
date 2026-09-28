@@ -1,5 +1,4 @@
-import { ArrowUpRight, CalendarDays, MapPin } from "lucide-react";
-import Link from "next/link";
+import { CalendarDays, MapPin } from "lucide-react";
 import SiteFrame from "../../components/SiteFrame";
 import UpcomingEvents from "../../components/UpcomingEvents";
 import FeedbackForm from "../../components/FeedbackForm";
@@ -30,7 +29,7 @@ export default async function EventsPage() {
         <UpcomingEvents archived />
       </section>
       <section className="feedback-section section-pad" id="feedback">
-        <div className="feedback-section__heading"><span className="eyebrow">01 / Event attendees</span><h2>Help shape<br /><em>what’s next.</em></h2><p>Tell us which event you attended, what worked, and what we can improve. Your name and email are optional.</p><Link className="text-link" href="/creators">Looking to apply? Job &amp; creator applications <ArrowUpRight size={15} /></Link></div>
+        <div className="feedback-section__heading"><span className="eyebrow">01 / Event attendees</span><h2>Help shape<br /><em>what’s next.</em></h2><p>Tell us which event you attended, what worked, and what we can improve. Your name and email are optional.</p></div>
         <FeedbackForm />
       </section>
     </SiteFrame>

@@ -15,8 +15,8 @@ export default function HeroSection({ content }) {
         <div className="festival-hero__bottom">
           <p>{content.tagline}<br /><span>{content.supportingLine}</span></p>
           <div className="festival-hero__actions">
-            <ButtonLink href="/creators" variant="light">Join creator network</ButtonLink>
-            <ButtonLink href="/contact" variant="dark">Partner with us</ButtonLink>
+            <ButtonLink href="/contact?category=Creator%20collaboration" variant="light">Creator collaborations</ButtonLink>
+            <ButtonLink href="/contact?category=Brand%20partnership" variant="dark">Partner with us</ButtonLink>
           </div>
         </div>
       </div>

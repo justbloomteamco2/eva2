@@ -24,7 +24,7 @@ export const siteContentDefaults = {
     portrait: "/images/founder-portrait-event.jpeg",
     socialHeadline: "People behind",
     socialHighlight: "the work.",
-    socialDescription: "Recognition and milestones shared by the team, drawn only from the pinned posts on Bardapure’s Instagram.",
+    socialDescription: "Recognition and milestones shared by the team, including a message of appreciation from Hon’ble Bandeppa Kashempur.",
     posts: aboutInstagramPosts,
     featuredCampaign
   },

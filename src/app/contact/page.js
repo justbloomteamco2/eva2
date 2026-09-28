@@ -2,6 +2,7 @@ import { ArrowUpRight } from "lucide-react";
 import SiteFrame from "../../components/SiteFrame";
 import ContactForm from "../../components/ContactForm";
 import { getPublicSiteContent } from "../../lib/site-content";
+import { isEnquiryCategory } from "../../lib/enquiry-categories";
 
 export const dynamic = "force-dynamic";
 
@@ -10,9 +11,11 @@ export const metadata = {
   description: "Start a conversation about brand partnerships, events, creator campaigns and production."
 };
 
-export default async function ContactPage() {
+export default async function ContactPage({ searchParams }) {
   const content = await getPublicSiteContent();
   const settings = content.site_settings;
+  const params = await searchParams;
+  const category = isEnquiryCategory(params?.category) ? params.category : "Brand partnership";
 
   return (
     <SiteFrame>
@@ -31,7 +34,7 @@ export default async function ContactPage() {
             {settings.address && <p>{settings.address}</p>}
             <p>Brand partnerships · Event production · Creator campaigns</p>
           </aside>
-          <ContactForm />
+          <ContactForm category={category} />
         </div>
       </section>
     </SiteFrame>

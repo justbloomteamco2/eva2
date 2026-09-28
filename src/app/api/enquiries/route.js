@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { hasTrustedOrigin, readBoundedJson } from "../../../lib/http";
 import { allowRateLimitedRequest, getSupabaseAdmin } from "../../../lib/supabase-admin";
+import { enquirySubmissionCategories } from "../../../lib/enquiry-categories";
 
 export const runtime = "nodejs";
 
@@ -10,15 +11,7 @@ const enquirySchema = z.object({
   email: z.string().trim().email().max(254),
   organisation: z.string().trim().max(160).default(""),
   message: z.string().trim().min(10).max(4000),
-  category: z.enum([
-    "Brand partnership",
-    "Event production",
-    "Creator campaign",
-    "Joining the network",
-    "Campus partnership",
-    "Film / production enquiry",
-    "Something else"
-  ]),
+  category: z.enum(enquirySubmissionCategories),
   website: z.string().max(0).optional().default("")
 }).strict();
 

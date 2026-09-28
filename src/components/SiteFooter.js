@@ -10,7 +10,7 @@ export default function SiteFooter({ settings }) {
         <span className="wordmark__text"><span>BARDAPURE</span><span>PRODUCTIONS<sup>®</sup></span></span>
       </Link>
       <div className="footer-links">
-        <Link href="/about">About</Link><Link href="/work">Our work</Link><Link href="/events">Events</Link><Link href="/creators">Creators</Link><Link href="/contact">Contact</Link>
+        <Link href="/about">About</Link><Link href="/work">Our work</Link><Link href="/events">Events</Link><Link href="/contact?category=Creator%20collaboration">Collaborate</Link><Link href="/contact">Contact</Link>
       </div>
       <div className="footer-social">
         {social.instagram && <a href={social.instagram} target="_blank" rel="noreferrer">Instagram ↗</a>}
@@ -18,7 +18,7 @@ export default function SiteFooter({ settings }) {
         {social.email && <a href={`mailto:${social.email}`}>{social.email}</a>}
         {social.phone && <a href={`tel:${social.phone.replaceAll(/[^\d+]/g, "")}`}>{social.phone}</a>}
         {social.address && <span>{social.address}</span>}
-        <Link href="/creators">Join the creator network ↗</Link>
+        <Link href="/contact?category=Creator%20collaboration">Start a collaboration ↗</Link>
       </div>
       <div className="footer-bottom">
         <span>© {new Date().getFullYear()} Bardapure Productions®</span>

@@ -67,6 +67,15 @@ export const aboutInstagramPosts = [
     image: "/images/instagram/ishwar-singh-thakur-appreciation.jpg",
     alt: "Pinned Instagram recognition post shared by Bardapure Productions",
     href: "https://www.instagram.com/p/DVh6NwZk3VW/"
+  },
+  {
+    title: "A message of recognition",
+    category: "From Hon’ble Bandeppa Kashempur",
+    image: "/images/recognition-bandeppa-kashempur-poster.png",
+    alt: "Recognition graphic featuring Bardapure Productions with Bandeppa Kashempur, former Minister of Agriculture of Karnataka, and his message celebrating the team's creative work.",
+    href: "https://www.instagram.com/bardapure_production_official/",
+    openLabel: "View Bardapure on Instagram",
+    format: "poster"
   }
 ];
 

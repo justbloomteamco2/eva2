@@ -4,14 +4,13 @@ import SiteFrame from "../components/SiteFrame";
 import PartnerMarquee from "../components/PartnerMarquee";
 import WorkGrid from "../components/WorkGrid";
 import UpcomingEvents from "../components/UpcomingEvents";
+import UpcomingProjects from "../components/ui/UpcomingProjects";
 import ButtonLink from "../components/ButtonLink";
 import AudiencePathways from "../components/AudiencePathways";
 import MotionReveal from "../components/MotionReveal";
 import { FeaturedCampaign } from "../components/AboutStory";
 import Link from "next/link";
 import { getPublicSiteContent } from "../lib/site-content";
-
-export const dynamic = "force-dynamic";
 
 export default async function HomePage() {
   const content = await getPublicSiteContent();
@@ -42,10 +41,11 @@ export default async function HomePage() {
         <FeaturedCampaign content={content.about.featuredCampaign} variant="event" />
         <UpcomingEvents compact />
       </section>
+      <UpcomingProjects />
       <AudiencePathways />
       <section className="home-invite section-pad">
-        <div><span className="eyebrow">Creators / Brands / Campuses</span><h2>Let’s make<br />something<br /><em>together.</em></h2></div>
-        <div className="home-invite__links"><ButtonLink href="/creators" variant="light">Join creator network</ButtonLink><ButtonLink href="/contact" variant="dark">Partner with us</ButtonLink></div>
+        <div><span className="eyebrow">One idea / The right people</span><h2>Bring good ideas<br /><em>to life.</em></h2></div>
+        <div className="home-invite__links"><ButtonLink href="/contact?category=Creator%20collaboration" variant="light">Start a collaboration</ButtonLink></div>
       </section>
       <section className="home-contact-cta section-pad">
         <span className="eyebrow">Projects / Partnerships / Production</span>

@@ -5,7 +5,7 @@ import { ArrowUpRight, Layers, Play } from "lucide-react";
 import { useState } from "react";
 import MotionReveal from "./MotionReveal";
 
-function CampaignTile({ post, index }) {
+function CampaignTile({ post, index, compact }) {
   function playVideo(event) {
     const player = event.currentTarget.querySelector("video");
     if (!player) return;
@@ -48,8 +48,7 @@ function CampaignTile({ post, index }) {
           alt={post.alt}
           fill
           sizes="(max-width: 640px) 88vw, (max-width: 1000px) 48vw, 30vw"
-          priority={index === 0}
-          unoptimized
+          priority={index === 0 && !compact}
         />
         {post.video && (
           <video className="campaign-tile__video" muted playsInline loop preload="none" aria-hidden="true">
@@ -97,7 +96,7 @@ export default function WorkGrid({ items, compact = false }) {
       )}
       <div className={`campaign-grid${compact ? " campaign-grid--compact" : ""}`}>
         {filteredProjects.length ? filteredProjects.map((post, index) => (
-          <CampaignTile key={post.href} post={post} index={index} />
+          <CampaignTile key={post.href} post={post} index={index} compact={compact} />
         )) : (
           <p className="campaign-empty">No projects in this category yet. Try another filter.</p>
         )}

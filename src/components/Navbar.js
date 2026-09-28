@@ -9,7 +9,7 @@ const links = [
   ["About", "/about"],
   ["Work", "/work"],
   ["Events", "/events"],
-  ["Creators", "/creators"],
+  ["Collaborate", "/contact?category=Creator%20collaboration"],
   ["Contact", "/contact"]
 ];
 

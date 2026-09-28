@@ -1,17 +1,23 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { ArrowUpRight } from "lucide-react";
 import { useToast } from "./ToastProvider";
 import { readApiResponse } from "../lib/client-api";
+import { enquiryCategories, isEnquiryCategory } from "../lib/enquiry-categories";
 
 const initialState = { name: "", email: "", organisation: "", message: "", category: "Brand partnership", website: "" };
 
-export default function ContactForm({ category = "Brand partnership" }) {
+export default function ContactForm({ category: requestedCategory = "Brand partnership" }) {
+  const category = isEnquiryCategory(requestedCategory) ? requestedCategory : "Brand partnership";
   const notify = useToast();
   const [values, setValues] = useState({ ...initialState, category });
   const [status, setStatus] = useState("idle");
   const [message, setMessage] = useState("");
+
+  useEffect(() => {
+    setValues((previous) => previous.category === category ? previous : { ...previous, category });
+  }, [category]);
 
   function update(event) {
     setValues((previous) => ({ ...previous, [event.target.name]: event.target.value }));
@@ -53,13 +59,7 @@ export default function ContactForm({ category = "Brand partnership" }) {
         <label>Brand / organisation <span className="form-field__meta">Optional</span><input name="organisation" autoComplete="organization" maxLength={160} placeholder="Company, college or team" value={values.organisation} onChange={update} /></label>
         <label>I’m interested in <span className="form-field__meta">Required</span>
           <select required name="category" value={values.category} onChange={update}>
-            <option>Brand partnership</option>
-            <option>Event production</option>
-            <option>Creator campaign</option>
-            <option>Campus partnership</option>
-            <option>Film / production enquiry</option>
-            <option>Joining the network</option>
-            <option>Something else</option>
+            {enquiryCategories.map((option) => <option key={option}>{option}</option>)}
           </select>
         </label>
       </div>

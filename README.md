@@ -19,22 +19,22 @@ The migration does not delete Cloudinary files previously uploaded for event pos
 
 ## Forms and notifications
 
-The **event attendee feedback** form is on `/events`. The separate **job / creator application** form is on `/creators`. Both forms show loading, success and error states, validate input on the server, and store submissions privately. Event feedback and creator applications are sent as separate CSV emails to the fixed `ADMIN_EMAIL` recipient.
+The site exposes two forms: the **Contact / Collaboration** form on `/contact` and the **event attendee feedback** form on `/events`. Both show loading, success and error states, validate input on the server, and store submissions privately. Collaboration links can preselect the relevant enquiry type. Event feedback is sent to the fixed `ADMIN_EMAIL` recipient.
 
-Configure server-only `RESEND_API_KEY`, `FEEDBACK_EMAIL_FROM` (an address on a Resend-verified domain), and `ADMIN_EMAIL` (the notification inbox). Failed email deliveries remain queued and Vercel retries them daily using `CRON_SECRET`. Creator application CSVs omit private profile-photo storage paths.
+Configure server-only `RESEND_API_KEY`, `FEEDBACK_EMAIL_FROM` (an address on a Resend-verified domain), and `ADMIN_EMAIL` (the notification inbox). Failed email deliveries remain queued and Vercel retries them daily using `CRON_SECRET`.
 
-The public enquiry, creator application and event feedback endpoints share the atomic Supabase rate limiter: three requests per IP hash per five minutes. It reads only the configured trusted proxy header (`x-real-ip` on Vercel; `cf-connecting-ip` on Cloudflare), validates the value, and ignores `X-Forwarded-For`. Do not expose a direct origin that accepts client-supplied proxy headers.
+The public enquiry, legacy creator application, and event feedback endpoints share the atomic Supabase rate limiter: three requests per IP hash per five minutes. The legacy creator API remains available without a linked public form; existing application records and profile photos are retained. The rate limiter reads only the configured trusted proxy header (`x-real-ip` on Vercel; `cf-connecting-ip` on Cloudflare), validates the value, and ignores `X-Forwarded-For`. Do not expose a direct origin that accepts client-supplied proxy headers.
 
 ## Public routes and API
 
-Public pages: `/`, `/work`, `/events`, `/creators`, `/about`, and `/contact`.
+Public pages: `/`, `/work`, `/events`, `/about`, and `/contact`. The legacy `/creators` route redirects to `/contact?category=Creator%20collaboration`.
 
 All API errors use `{ "error": "..." }`; public form submissions return JSON. The event API returns only published records, paginated by 20:
 
 | Method and path | Purpose |
 | --- | --- |
 | `POST /api/enquiries` | Save a brand or project enquiry |
-| `POST /api/creators` | Save a creator/job application and private profile photo |
+| `POST /api/creators` | Legacy creator submission API; not linked from the public site |
 | `POST /api/feedback` | Save event-attendee feedback |
 | `GET /api/events?view=upcoming&page=1` | List published upcoming events |
 | `GET /api/events?view=archive&page=1` | List published past events |
