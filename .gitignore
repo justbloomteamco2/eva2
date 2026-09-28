@@ -1,7 +1,14 @@
 node_modules/
 .next/
+.next-admin-audit/
 out/
+build/
+dist/
 .vercel/
+.agents/
+.claude/
 .env*
 !.env.example
 *.log
+*.pack
+*.cache
