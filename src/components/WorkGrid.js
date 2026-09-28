@@ -3,6 +3,66 @@
 import Image from "next/image";
 import { ArrowUpRight, Layers, Play } from "lucide-react";
 import { useState } from "react";
+import MotionReveal from "./MotionReveal";
+
+function CampaignTile({ post, index }) {
+  function playVideo(event) {
+    const player = event.currentTarget.querySelector("video");
+    if (!player) return;
+    const playback = player.play();
+    if (playback) {
+      playback.catch((error) => {
+        if (error.name !== "NotAllowedError" && error.name !== "AbortError") {
+          console.error("Campaign preview could not be played.", error);
+        }
+      });
+    }
+  }
+
+  function pauseVideo(event) {
+    const player = event.currentTarget.querySelector("video");
+    if (!player) return;
+    player.pause();
+    player.currentTime = 0;
+  }
+
+  const FormatIcon = post.format === "Reel" ? Play : Layers;
+  return (
+    <MotionReveal
+      as="a"
+      className={`campaign-tile campaign-tile--${index + 1}`}
+      href={post.href}
+      target="_blank"
+      rel="noreferrer"
+      style={{ "--card-index": index }}
+      aria-label={`${post.title}, ${post.format}. Open original Instagram ${post.format.toLowerCase()}.`}
+      onPointerEnter={playVideo}
+      onPointerLeave={pauseVideo}
+      onFocus={playVideo}
+      onBlur={pauseVideo}
+      delay={(index % 5) * 0.06}
+    >
+      <div className="campaign-tile__visual">
+        <Image
+          src={post.image}
+          alt={post.alt}
+          fill
+          sizes="(max-width: 640px) 88vw, (max-width: 1000px) 48vw, 30vw"
+          priority={index === 0}
+          unoptimized
+        />
+        {post.video && (
+          <video className="campaign-tile__video" muted playsInline loop preload="none" aria-hidden="true">
+            <source src={post.video} type="video/mp4" />
+          </video>
+        )}
+        <span className="campaign-tile__format"><FormatIcon aria-hidden="true" /><span className="sr-only">{post.format}</span></span>
+        <span className="campaign-tile__overlay"><span>{post.category} · {post.location}</span><strong>{post.title}</strong><span>Watch on Instagram <ArrowUpRight size={13} /></span></span>
+      </div>
+      <span className="campaign-tile__caption"><strong>{post.title}</strong><span>{post.category} · {post.location}</span></span>
+    </MotionReveal>
+  );
+}
 
 export default function WorkGrid({ items, compact = false }) {
   const projects = compact ? items.slice(0, 4) : items;
@@ -36,34 +96,9 @@ export default function WorkGrid({ items, compact = false }) {
         </p>
       )}
       <div className={`campaign-grid${compact ? " campaign-grid--compact" : ""}`}>
-        {filteredProjects.length ? filteredProjects.map((post, index) => {
-          const FormatIcon = post.format === "Reel" ? Play : Layers;
-          return (
-            <a
-              className={`campaign-tile campaign-tile--${index + 1}`}
-              key={post.href}
-              href={post.href}
-              target="_blank"
-              rel="noreferrer"
-              style={{ "--card-index": index }}
-              aria-label={`${post.title}, ${post.format}. Open original Instagram ${post.format.toLowerCase()}.`}
-            >
-              <div className="campaign-tile__visual">
-                <Image
-                  src={post.image}
-                  alt={post.alt}
-                  fill
-                  sizes="(max-width: 640px) 48vw, (max-width: 1000px) 32vw, 24vw"
-                  priority={index === 0}
-                  unoptimized
-                />
-                <span className="campaign-tile__format"><FormatIcon aria-hidden="true" /><span className="sr-only">{post.format}</span></span>
-                <span className="campaign-tile__overlay"><span>{post.category} · {post.location}</span><strong>{post.title}</strong><span>Watch on Instagram <ArrowUpRight size={13} /></span></span>
-              </div>
-              <span className="campaign-tile__caption"><strong>{post.title}</strong><span>{post.category} · {post.location}</span></span>
-            </a>
-          );
-        }) : (
+        {filteredProjects.length ? filteredProjects.map((post, index) => (
+          <CampaignTile key={post.href} post={post} index={index} />
+        )) : (
           <p className="campaign-empty">No projects in this category yet. Try another filter.</p>
         )}
       </div>

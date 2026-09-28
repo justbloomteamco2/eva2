@@ -1,21 +1,26 @@
 import { ArrowUpRight, Building2, Tag } from "lucide-react";
 import Link from "next/link";
+import MotionReveal from "./MotionReveal";
 
 export default function AudiencePathways() {
   return (
     <section className="audience-pathways section-pad" aria-label="Ways to work with Bardapure">
-      <Link href="/contact" className="audience-pathways__card" data-reveal>
-        <Tag size={19} aria-hidden="true" />
-        <span className="eyebrow">For brands</span>
-        <strong>Looking for<br />the right people?</strong>
-        <span className="text-link">Start a project <ArrowUpRight size={15} /></span>
-      </Link>
-      <Link href="/contact" className="audience-pathways__card" data-reveal>
-        <Building2 size={19} aria-hidden="true" />
-        <span className="eyebrow">For colleges</span>
-        <strong>Let’s bring<br />campus to life.</strong>
-        <span className="text-link">Partner with us <ArrowUpRight size={15} /></span>
-      </Link>
+      <MotionReveal className="audience-pathways__item">
+        <Link href="/contact" className="audience-pathways__card">
+          <Tag size={19} aria-hidden="true" />
+          <span className="eyebrow">For brands</span>
+          <strong>Looking for<br />the right people?</strong>
+          <span className="text-link">Start a project <ArrowUpRight size={15} /></span>
+        </Link>
+      </MotionReveal>
+      <MotionReveal className="audience-pathways__item" delay={0.12}>
+        <Link href="/contact" className="audience-pathways__card">
+          <Building2 size={19} aria-hidden="true" />
+          <span className="eyebrow">For colleges</span>
+          <strong>Let’s bring<br />campus to life.</strong>
+          <span className="text-link">Partner with us <ArrowUpRight size={15} /></span>
+        </Link>
+      </MotionReveal>
     </section>
   );
 }

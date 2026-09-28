@@ -6,6 +6,8 @@ import WorkGrid from "../components/WorkGrid";
 import UpcomingEvents from "../components/UpcomingEvents";
 import ButtonLink from "../components/ButtonLink";
 import AudiencePathways from "../components/AudiencePathways";
+import MotionReveal from "../components/MotionReveal";
+import { FeaturedCampaign } from "../components/AboutStory";
 import Link from "next/link";
 import { getPublicSiteContent } from "../lib/site-content";
 
@@ -28,15 +30,16 @@ export default async function HomePage() {
       <section className="home-services section-pad">
         <span className="eyebrow">From the first idea to the final frame</span>
         <div className="home-services__grid">
-          <article><Target /><strong>Brand activations</strong></article>
-          <article><Mic2 /><strong>Events &amp; experiences</strong></article>
-          <article><Camera /><strong>Content &amp; production</strong></article>
-          <article><Users /><strong>Talent &amp; creators</strong></article>
+          <MotionReveal as="article"><Target /><strong>Brand activations</strong></MotionReveal>
+          <MotionReveal as="article" delay={0.08}><Mic2 /><strong>Events &amp; experiences</strong></MotionReveal>
+          <MotionReveal as="article" delay={0.16}><Camera /><strong>Content &amp; production</strong></MotionReveal>
+          <MotionReveal as="article" delay={0.24}><Users /><strong>Talent &amp; creators</strong></MotionReveal>
         </div>
         <Link className="text-link" href="/about#services">See what we do <ArrowUpRight size={15} /></Link>
       </section>
       <section className="home-events section-pad">
         <div className="route-heading"><div><span className="eyebrow">Upcoming / Archive</span><h2>Events, in<br /><em>good company.</em></h2></div><Link className="text-link" href="/events">Event calendar <ArrowRight size={16} /></Link></div>
+        <FeaturedCampaign content={content.about.featuredCampaign} variant="event" />
         <UpcomingEvents compact />
       </section>
       <AudiencePathways />

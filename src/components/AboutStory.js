@@ -1,5 +1,8 @@
 import Image from "next/image";
 import { ArrowUpRight } from "lucide-react";
+import Link from "next/link";
+import MotionReveal from "./MotionReveal";
+import RecognitionCards from "./RecognitionCards";
 
 export function AboutStory({ content }) {
   const featuredCampaign = content.featuredCampaign;
@@ -19,37 +22,35 @@ export function AboutStory({ content }) {
           </div>
         </div>
       </section>
-      <section className="about-social section-pad" aria-labelledby="about-posts-title">
+      <section className="about-social section-pad" id="moments-of-recognition" aria-labelledby="about-posts-title">
         <div className="about-social__intro">
-          <span className="eyebrow">People make the work</span>
+          <span className="eyebrow">People make the work / Moments of recognition</span>
           <h2 id="about-posts-title">{content.socialHeadline}<br /><em>{content.socialHighlight}</em></h2>
           <p>{content.socialDescription}</p>
         </div>
-        <div className="about-social__grid">
-          {content.posts.map((post) => (
-            <a className="about-post" key={post.href} href={post.href} target="_blank" rel="noreferrer" data-reveal>
-              <div className="about-post__image"><Image src={post.image} alt={post.alt} fill sizes="(max-width: 640px) 85vw, 35vw" unoptimized /></div>
-              <div className="about-post__meta"><span className="eyebrow">{post.category}</span><span>{post.title}<ArrowUpRight size={15} /></span></div>
-            </a>
-          ))}
-        </div>
+        <RecognitionCards posts={content.posts} />
       </section>
       <FeaturedCampaign content={featuredCampaign} />
     </>
   );
 }
 
-export function FeaturedCampaign({ content }) {
+export function FeaturedCampaign({ content, variant = "editorial" }) {
+  const isEvent = variant === "event";
   return (
-    <section className="featured-campaign section-pad" id="recognition" aria-labelledby="current-campaign-title" data-reveal>
+    <MotionReveal as="section" className={`featured-campaign section-pad featured-campaign--${variant}`} id={isEvent ? "upcoming-campaign" : "current-campaign"} aria-labelledby={`${variant}-campaign-title`} hoverLift={false}>
       <div className="featured-campaign__image"><Image src={content.image} alt={content.alt} fill sizes="(max-width: 760px) 100vw, 58vw" unoptimized /></div>
       <div className="featured-campaign__copy">
         <span className="eyebrow">A fresh one from the field</span>
         <span className="featured-campaign__tag">{content.category}</span>
-        <h2 id="current-campaign-title">{content.title}</h2>
+        <h2 id={`${variant}-campaign-title`}>{content.title}</h2>
         <p>{content.description}</p>
-        <a className="text-link" href={content.href} target="_blank" rel="noreferrer">See the original post <ArrowUpRight size={16} /></a>
+        {isEvent && <span className="featured-campaign__live"><i aria-hidden="true" /> Currently active</span>}
+        <div className="featured-campaign__actions">
+          {isEvent && <Link className="button-link button-link--light" href="/contact?campaign=blackberrys-on-campus">Enquire <ArrowUpRight size={16} /></Link>}
+          <a className="text-link" href={content.href} target="_blank" rel="noreferrer">See the original post <ArrowUpRight size={16} /></a>
+        </div>
       </div>
-    </section>
+    </MotionReveal>
   );
 }

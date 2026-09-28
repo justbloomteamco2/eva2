@@ -56,17 +56,17 @@ export const partnerNames = [
 export const aboutInstagramPosts = [
   {
     title: "A moment of appreciation",
-    category: "Recognition",
+    category: "Pinned post",
     image: "/images/instagram/hd-kumaraswamy-appreciation.jpg",
-    alt: "Bardapure Productions receiving appreciation from H. D. Kumaraswamy",
+    alt: "Pinned Instagram appreciation post shared by Bardapure Productions",
     href: "https://www.instagram.com/p/DVkkDi4D_9H/"
   },
   {
-    title: "A proud moment for the team",
-    category: "Recognition",
+    title: "A milestone for the team",
+    category: "Pinned post",
     image: "/images/instagram/ishwar-singh-thakur-appreciation.jpg",
-    alt: "Recognition shared with Bardapure Productions by Ishwar Singh Thakur",
-    href: "https://www.instagram.com/p/DVoKRALD2i8/"
+    alt: "Pinned Instagram recognition post shared by Bardapure Productions",
+    href: "https://www.instagram.com/p/DVh6NwZk3VW/"
   }
 ];
 
@@ -129,7 +129,8 @@ export const instagramPosts = [
     format: "Reel",
     image: "/images/instagram/flying-flea-ride-reel.jpg",
     alt: "Instagram Reel cover for Bardapure's Royal Enfield Flying Flea ride experience in Bengaluru",
-    href: "https://www.instagram.com/sagar_bardapure_official/reel/DXHJQW0j90S/"
+    href: "https://www.instagram.com/sagar_bardapure_official/reel/DXHJQW0j90S/",
+    video: "/videos/bardapure-flying-flea.mp4"
   },
   {
     title: "Flying Flea campaign",
@@ -174,7 +175,8 @@ export const instagramPosts = [
     format: "Reel",
     image: "/images/instagram/indian-air-force-event.jpg",
     alt: "Instagram Reel cover for Bardapure Productions event management at Bidar Air Force Station",
-    href: "https://www.instagram.com/sagar_bardapure_official/reel/DT78widDyu9/"
+    href: "https://www.instagram.com/sagar_bardapure_official/reel/DT78widDyu9/",
+    video: "/videos/bardapure-air-force-bidar.mp4"
   },
   {
     title: "Ramleela Utsav",
@@ -196,32 +198,13 @@ export const instagramPosts = [
   },
 ];
 
-export const recognitions = [
-  {
-    title: "Recognition · Ishwar Singh Thakur",
-    detail: "As shown in the supplied appreciation artwork",
-    image: "/images/recognition-ishwar-thakur.jpeg",
-    alt: "Appreciation artwork with Ishwar Singh Thakur and Bardapure representatives"
-  },
-  {
-    title: "Recognition · H. D. Kumaraswamy",
-    detail: "As shown in the supplied appreciation artwork",
-    image: "/images/recognition-hd-kumaraswamy.jpeg",
-    alt: "Appreciation artwork with H. D. Kumaraswamy and Bardapure representatives"
-  },
-  {
-    title: "Recognition · Bandeppa Kashempur",
-    detail: "As shown in the supplied appreciation artwork",
-    image: "/images/recognition-bandeppa-kashempur.jpeg",
-    alt: "Appreciation artwork with Bandeppa Kashempur and Bardapure representatives"
-  }
-];
-
 export const testimonials = [
   {
-    quote: "It is truly a matter of pride to recognize the outstanding work of Bardapure Production in entertainment and creative branding excellence.",
-    name: "Ishwar Singh Thakur",
-    role: "BJP candidate · Bidar Assembly Constituency",
-    image: "/images/recognition-ishwar-thakur.jpeg"
+    quote: "Big congratulations to our Team Bardapure Production ✨ May our hard work bring even more achievements in the coming projects. This is new chapter begins for me.",
+    source: "Instagram comment"
+  },
+  {
+    quote: "Great experience at the BlackBerry's Activation! Well organized, creative concept, and smooth execution by the Bardapure Productions team. Loved it! 👏",
+    source: "Instagram comment"
   }
 ];

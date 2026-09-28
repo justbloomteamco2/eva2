@@ -1,4 +1,5 @@
 import { cities } from "../data/content";
+import MotionReveal from "./MotionReveal";
 
 export default function ReachStats({ content }) {
   return (
@@ -6,7 +7,11 @@ export default function ReachStats({ content }) {
       <section className="reach-stats section-pad" aria-label="Bardapure network">
         <span className="eyebrow">A connected creative practice</span>
         <div className="reach-stats__grid">
-          {content.items.map((item) => <article key={`${item.value}-${item.label}`} data-reveal><strong>{item.value}</strong><span>{item.label}</span></article>)}
+          {content.items.map((item, index) => (
+            <MotionReveal as="article" key={`${item.value}-${item.label}`} delay={index * 0.08}>
+              <strong>{item.value}</strong><span>{item.label}</span>
+            </MotionReveal>
+          ))}
         </div>
         <p>{content.note}</p>
       </section>

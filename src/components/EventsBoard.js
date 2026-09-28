@@ -1,10 +1,11 @@
 import Image from "next/image";
 import { ArrowUpRight, CalendarDays, MapPin, Ticket } from "lucide-react";
+import MotionReveal from "./MotionReveal";
 
 function EventCard({ event }) {
   const date = new Date(`${event.date}T12:00:00`);
   return (
-    <article className="public-event" data-reveal>
+    <MotionReveal as="article" className="public-event">
       <div className="public-event__poster">
         {event.poster_url ? <Image src={event.poster_url} alt={`${event.title} event poster`} fill sizes="(max-width: 680px) 88vw, 30vw" unoptimized /> : <div className="public-event__poster-placeholder"><CalendarDays size={44} /><span>BARDAPURE<br />LIVE</span></div>}
         <span>{event.registration_type === "free" ? "Free entry" : "Paid registration"}</span>
@@ -16,7 +17,7 @@ function EventCard({ event }) {
         <p>{event.description}</p>
         {event.registration_link && <a className="text-link" href={event.registration_link} target="_blank" rel="noreferrer">Register <ArrowUpRight size={15} /></a>}
       </div>
-    </article>
+    </MotionReveal>
   );
 }
 
