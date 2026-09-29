@@ -429,7 +429,14 @@ create table if not exists public.community_reviews (
 
 alter table public.community_reviews enable row level security;
 revoke all on public.community_reviews from public, anon, authenticated;
+grant select on public.community_reviews to anon, authenticated;
 grant select, insert, update on public.community_reviews to service_role;
+drop policy if exists community_reviews_read_public on public.community_reviews;
+create policy community_reviews_read_public
+  on public.community_reviews
+  for select
+  to anon, authenticated
+  using (true);
 create index if not exists community_reviews_created_at_idx on public.community_reviews (created_at desc);
 
 create table if not exists public.community_review_likes (
@@ -477,6 +484,52 @@ $$;
 
 revoke all on function public.like_community_review(uuid, text) from public, anon, authenticated;
 grant execute on function public.like_community_review(uuid, text) to service_role;
+
+create table if not exists public.review_replies (
+  id uuid primary key default gen_random_uuid(),
+  review_id uuid not null references public.community_reviews(id) on delete cascade,
+  name text not null check (char_length(name) between 2 and 80),
+  reply_text text not null check (char_length(reply_text) between 2 and 500),
+  created_at timestamptz not null default now()
+);
+
+create index if not exists review_replies_review_created_idx
+  on public.review_replies (review_id, created_at asc);
+
+alter table public.review_replies enable row level security;
+revoke all on public.review_replies from public, anon, authenticated;
+grant select on public.review_replies to anon, authenticated;
+grant select, insert, update, delete on public.review_replies to service_role;
+drop policy if exists review_replies_read_public on public.review_replies;
+create policy review_replies_read_public
+  on public.review_replies
+  for select
+  to anon, authenticated
+  using (true);
+
+do $$
+begin
+  if not exists (
+    select 1
+    from pg_publication_tables
+    where pubname = 'supabase_realtime'
+      and schemaname = 'public'
+      and tablename = 'community_reviews'
+  ) then
+    alter publication supabase_realtime add table public.community_reviews;
+  end if;
+
+  if not exists (
+    select 1
+    from pg_publication_tables
+    where pubname = 'supabase_realtime'
+      and schemaname = 'public'
+      and tablename = 'review_replies'
+  ) then
+    alter publication supabase_realtime add table public.review_replies;
+  end if;
+end;
+$$;
 
 insert into public.community_reviews (id, name, city, category, quote, is_sample, created_at)
 values

@@ -57,7 +57,7 @@ export async function GET(request) {
       client.from("community_reviews")
         .select("id,name,city,category,quote,likes,is_sample,created_at")
         .order("created_at", { ascending: false })
-        .limit(100),
+        .limit(6),
       client.from("community_review_likes")
         .select("review_id")
         .eq("voter_hash", voterHash)
@@ -65,11 +65,30 @@ export async function GET(request) {
     ]);
     if (reviewsResult.error) throw new Error(`Community reviews could not be loaded: ${reviewsResult.error.message}`);
     if (likesResult.error) throw new Error(`Community review likes could not be loaded: ${likesResult.error.message}`);
+    const reviewIds = (reviewsResult.data || []).map((review) => review.id);
+    const repliesResult = reviewIds.length
+      ? await client.from("review_replies")
+        .select("id,review_id,name,reply_text,created_at")
+        .in("review_id", reviewIds)
+        .order("created_at", { ascending: true })
+      : { data: [], error: null };
+    if (repliesResult.error) throw new Error(`Community review replies could not be loaded: ${repliesResult.error.message}`);
 
     const secure = new URL(request.url).protocol === "https:";
     const cookie = `${COOKIE_NAME}=${voterId}; Path=/; Max-Age=31536000; HttpOnly; SameSite=Lax${secure ? "; Secure" : ""}`;
     return json({
-      reviews: (reviewsResult.data || []).map(toReview),
+      reviews: (reviewsResult.data || []).map((review) => ({
+        ...toReview(review),
+        replies: (repliesResult.data || [])
+          .filter((reply) => reply.review_id === review.id)
+          .map((reply) => ({
+            id: reply.id,
+            reviewId: reply.review_id,
+            name: reply.name,
+            replyText: reply.reply_text,
+            createdAt: reply.created_at
+          }))
+      })),
       likedIds: (likesResult.data || []).map((like) => like.review_id)
     }, 200, { "Set-Cookie": cookie });
   } catch (error) {

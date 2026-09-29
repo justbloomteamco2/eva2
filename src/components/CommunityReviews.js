@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { Heart, MessageCircle } from "lucide-react";
+import { createClient } from "@supabase/supabase-js";
 import { readApiResponse } from "../lib/client-api";
 
 const PREFERENCE_KEY = "bardapure-community-review-category";
@@ -14,6 +15,30 @@ function formatReviewTime(review) {
   return new Intl.DateTimeFormat("en-IN", { dateStyle: "medium" }).format(createdAt);
 }
 
+function mapRealtimeReview(row) {
+  return {
+    id: row.id,
+    name: row.name,
+    city: row.city,
+    category: row.category,
+    quote: row.quote,
+    likes: row.likes,
+    createdAt: row.created_at,
+    isSample: row.is_sample,
+    replies: []
+  };
+}
+
+function mapRealtimeReply(row) {
+  return {
+    id: row.id,
+    reviewId: row.review_id,
+    name: row.name,
+    replyText: row.reply_text,
+    createdAt: row.created_at
+  };
+}
+
 export default function CommunityReviews() {
   const [reviews, setReviews] = useState([]);
   const [likedIds, setLikedIds] = useState([]);
@@ -24,8 +49,13 @@ export default function CommunityReviews() {
   const [submitting, setSubmitting] = useState(false);
   const [pendingLikeId, setPendingLikeId] = useState("");
   const [status, setStatus] = useState("");
+  const [liveStatus, setLiveStatus] = useState("Connecting to live reviews…");
+  const [replyStatus, setReplyStatus] = useState({});
+  const [pendingReplies, setPendingReplies] = useState({});
 
   useEffect(() => {
+    let cancelled = false;
+    let supabase;
     try {
       setPreferredCategory(window.localStorage.getItem(PREFERENCE_KEY) || "");
     } catch (error) {
@@ -47,6 +77,86 @@ export default function CommunityReviews() {
       }
     }
     loadReviews();
+    async function subscribeToLiveChanges() {
+      try {
+        const response = await fetch("/api/community-reviews/realtime-config", { cache: "no-store" });
+        const config = await readApiResponse(response);
+        if (!response.ok) throw new Error(config.error || "Live reviews are not configured.");
+        if (cancelled) return;
+
+        supabase = createClient(config.url, config.key);
+        supabase.channel("community-review-feed")
+          .on("postgres_changes", {
+            event: "INSERT",
+            schema: "public",
+            table: "community_reviews"
+          }, ({ new: row }) => {
+            const incoming = mapRealtimeReview(row);
+            setReviews((current) => {
+              const optimisticMatch = current.find((item) =>
+                item.optimistic
+                && item.name === incoming.name
+                && item.city === incoming.city
+                && item.category === incoming.category
+                && item.quote === incoming.quote);
+              if (optimisticMatch) incoming.replies = optimisticMatch.replies || [];
+              return [incoming, ...current.filter((item) =>
+                item.id !== incoming.id && item.id !== optimisticMatch?.id
+              )]
+                .sort((first, second) => second.createdAt.localeCompare(first.createdAt))
+                .slice(0, 6);
+            });
+          })
+          .on("postgres_changes", {
+            event: "UPDATE",
+            schema: "public",
+            table: "community_reviews"
+          }, ({ new: row }) => {
+            setReviews((current) => current.map((review) =>
+              review.id === row.id ? { ...review, likes: row.likes } : review
+            ));
+          })
+          .on("postgres_changes", {
+            event: "INSERT",
+            schema: "public",
+            table: "review_replies"
+          }, ({ new: row }) => {
+            const incoming = mapRealtimeReply(row);
+            setReviews((current) => current.map((review) => {
+              if (review.id !== incoming.reviewId) return review;
+              const pendingMatch = (review.replies || []).find((reply) =>
+                reply.optimistic && reply.name === incoming.name && reply.replyText === incoming.replyText);
+              if (pendingMatch) {
+                setPendingReplies((pending) => ({
+                  ...pending,
+                  [review.id]: pending[review.id] === pendingMatch.id ? "" : pending[review.id]
+                }));
+              }
+              return {
+                ...review,
+                replies: [...(review.replies || []).filter((reply) =>
+                  reply.id !== incoming.id && reply.id !== pendingMatch?.id
+                ), incoming].sort((first, second) => first.createdAt.localeCompare(second.createdAt))
+              };
+            }));
+          })
+          .subscribe((channelStatus) => {
+            if (channelStatus === "SUBSCRIBED") setLiveStatus("Live");
+            if (channelStatus === "CHANNEL_ERROR" || channelStatus === "TIMED_OUT") {
+              setLiveStatus("Live updates unavailable — refresh to reconnect.");
+            }
+          });
+      } catch (error) {
+        console.error("Community review live updates could not be started:", error.message);
+        if (!cancelled) setLiveStatus("Live updates unavailable — refresh to reconnect.");
+      }
+    }
+    subscribeToLiveChanges();
+
+    return () => {
+      cancelled = true;
+      if (supabase) supabase.removeAllChannels();
+    };
   }, []);
 
   const sortedReviews = useMemo(() => [...reviews]
@@ -69,9 +179,19 @@ export default function CommunityReviews() {
       category: String(formData.get("category") || ""),
       quote: String(formData.get("review") || "")
     };
+    const optimisticReview = {
+      ...body,
+      id: `pending-${crypto.randomUUID()}`,
+      likes: 0,
+      createdAt: new Date().toISOString(),
+      isSample: false,
+      optimistic: true,
+      replies: []
+    };
+    setReviews((current) => [optimisticReview, ...current].slice(0, 6));
+    setPinnedId(optimisticReview.id);
     setSubmitting(true);
     setStatus("");
-
     try {
       const response = await fetch("/api/community-reviews", {
         method: "POST",
@@ -80,7 +200,15 @@ export default function CommunityReviews() {
       });
       const result = await readApiResponse(response);
       if (!response.ok) throw new Error(result.error || "We couldn’t save your review.");
-      setReviews((current) => [result.review, ...current]);
+      setReviews((current) => [result.review, ...current.filter((item) =>
+        item.id !== optimisticReview.id
+        && item.id !== result.review.id
+        && !(item.optimistic && item.name === result.review.name
+          && item.city === result.review.city && item.category === result.review.category
+          && item.quote === result.review.quote)
+      )]
+        .sort((first, second) => second.createdAt.localeCompare(first.createdAt))
+        .slice(0, 6));
       setPinnedId(result.review.id);
       setPreferredCategory(result.review.category);
       try {
@@ -91,9 +219,68 @@ export default function CommunityReviews() {
       setStatus("Thanks for sharing — your review is now at the top.");
       form.reset();
     } catch (error) {
+      setReviews((current) => current.filter((item) => item.id !== optimisticReview.id));
+      setPinnedId("");
       setStatus(error.message || "We couldn’t save your review. Please try again.");
     } finally {
       setSubmitting(false);
+    }
+  }
+
+  async function submitReply(event, review) {
+    event.preventDefault();
+    if (pendingReplies[review.id]) return;
+    const form = event.currentTarget;
+    const formData = new FormData(form);
+    const body = {
+      name: String(formData.get("replyName") || ""),
+      replyText: String(formData.get("replyText") || "")
+    };
+    const optimisticReply = {
+      ...body,
+      id: `pending-${crypto.randomUUID()}`,
+      reviewId: review.id,
+      createdAt: new Date().toISOString(),
+      optimistic: true
+    };
+    setPendingReplies((current) => ({ ...current, [review.id]: optimisticReply.id }));
+    setReplyStatus((current) => ({ ...current, [review.id]: "" }));
+    setReviews((current) => current.map((item) => item.id === review.id
+      ? { ...item, replies: [...(item.replies || []), optimisticReply] }
+      : item));
+    form.reset();
+
+    try {
+      const response = await fetch(`/api/community-reviews/${review.id}/replies`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body)
+      });
+      const result = await readApiResponse(response);
+      if (!response.ok) throw new Error(result.error || "We couldn’t save your reply.");
+      setReviews((current) => current.map((item) => item.id === review.id
+        ? {
+          ...item,
+          replies: [...(item.replies || []).filter((reply) =>
+            reply.id !== optimisticReply.id
+            && reply.id !== result.reply.id
+            && !(reply.optimistic && reply.name === result.reply.name && reply.replyText === result.reply.replyText)
+          ), result.reply]
+            .sort((first, second) => first.createdAt.localeCompare(second.createdAt))
+        }
+        : item));
+      setReplyStatus((current) => ({ ...current, [review.id]: "Reply posted." }));
+      form.reset();
+    } catch (error) {
+      setReviews((current) => current.map((item) => item.id === review.id
+        ? { ...item, replies: (item.replies || []).filter((reply) => reply.id !== optimisticReply.id) }
+        : item));
+      setReplyStatus((current) => ({
+        ...current,
+        [review.id]: error.message || "We couldn’t save your reply. Please try again."
+      }));
+    } finally {
+      setPendingReplies((current) => ({ ...current, [review.id]: "" }));
     }
   }
 
@@ -133,6 +320,7 @@ export default function CommunityReviews() {
         <div>
           <span className="eyebrow">The community / In their words</span>
           <h2 id="community-reviews-title">Notes from people<br /><em>we’ve worked with.</em></h2>
+          <p className="community-reviews__live" aria-live="polite"><span className={liveStatus === "Live" ? "is-live" : ""} />{liveStatus}</p>
         </div>
       </div>
       <p className="community-reviews__notice">The five initial entries are sample reviews. New reviews and likes are shared with the community; category preferences are saved in this browser.</p>
@@ -188,6 +376,27 @@ export default function CommunityReviews() {
               </div>
               <blockquote>{review.quote}</blockquote>
               <span className="community-note__category">{review.category}</span>
+              {review.replies?.length > 0 && (
+                <div className="community-note__replies" aria-label="Replies">
+                  {review.replies.map((reply) => (
+                    <div className="community-note__reply" key={reply.id}>
+                      <div className="community-note__reply-avatar" aria-hidden="true">{reply.name.charAt(0).toUpperCase()}</div>
+                      <div>
+                        <p><strong>{reply.name}</strong>{reply.optimistic && <span> · Sending…</span>}</p>
+                        <span>{reply.replyText}</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+              <form className="community-note__reply-form" onSubmit={(event) => submitReply(event, review)}>
+                <input required name="replyName" minLength={2} maxLength={80} aria-label="Your name for reply" placeholder="Your name" />
+                <textarea required name="replyText" minLength={2} maxLength={500} rows={2} aria-label="Write a reply" placeholder="Write a reply…" />
+                <button type="submit" disabled={Boolean(pendingReplies[review.id])}>
+                  {pendingReplies[review.id] ? "Sending…" : "Reply"}
+                </button>
+                <span className="community-note__reply-status" aria-live="polite">{replyStatus[review.id]}</span>
+              </form>
             </div>
             <button
               className={`community-note__like${likedIds.includes(review.id) ? " is-liked" : ""}`}
