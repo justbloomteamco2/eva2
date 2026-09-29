@@ -1,5 +1,6 @@
 import SiteFrame from "../../components/SiteFrame";
 import CreatorRolePicker from "../../components/CreatorRolePicker";
+import UpcomingProjects from "../../components/UpcomingProjects";
 import Link from "next/link";
 import { ArrowUpRight } from "lucide-react";
 
@@ -16,7 +17,12 @@ export default function CreatorsPage() {
       <section className="creator-page section-pad">
         <span className="eyebrow">02 / Job &amp; creator applications</span>
         <div className="route-heading"><div><h1>Your next<br /><em>chapter starts here.</em></h1></div><div className="route-heading__aside"><p>Apply to join our creator and event talent network. Share your skills and the opportunities you’re looking for; our team will reach out when there’s a fit.</p><Link className="text-link" href="/events#feedback">Attended an event? Share attendee feedback <ArrowUpRight size={15} /></Link></div></div>
-        <CreatorRolePicker />
+        <UpcomingProjects />
+        <div className="creator-network-application">
+          <span className="eyebrow">Open applications / Ongoing</span>
+          <h2>Join the creator<br /><em>network.</em></h2>
+          <CreatorRolePicker />
+        </div>
       </section>
     </SiteFrame>
   );

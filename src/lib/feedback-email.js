@@ -46,16 +46,18 @@ async function sendCsvEmail({ record, columns, type, filename, subject, text }) 
 }
 
 export function sendFeedbackCsvEmail(feedback) {
+  const isClientFeedback = feedback.feedback_type === "client";
   return sendCsvEmail({
     record: feedback,
     columns: [
-      "id", "name", "attendee_email", "event", "event_date", "rating",
-      "would_attend_again", "what_went_well", "what_to_improve", "created_at"
+      "id", "feedback_type", "name", "attendee_email", "attendee_phone", "client_project",
+      "event", "event_date", "rating", "would_attend_again", "what_went_well",
+      "what_to_improve", "message", "created_at"
     ],
-    type: "feedback",
-    filename: `feedback-${feedback.id}.csv`,
-    subject: "New event feedback received",
-    text: "A new event feedback submission is attached as a CSV file."
+    type: isClientFeedback ? "client-feedback" : "feedback",
+    filename: `${isClientFeedback ? "client-feedback" : "feedback"}-${feedback.id}.csv`,
+    subject: isClientFeedback ? "New client feedback received" : "New event feedback received",
+    text: `A new ${isClientFeedback ? "client" : "event"} feedback submission is attached as a CSV file.`
   });
 }
 

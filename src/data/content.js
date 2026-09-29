@@ -55,6 +55,13 @@ export const partnerNames = [
 
 export const aboutInstagramPosts = [
   {
+    title: "Recognition from Bandeppa Kashempur",
+    category: "A team milestone",
+    image: "/images/recognition-bandeppa-kashempur.jpeg",
+    alt: "Bardapure Productions team recognition with Bandeppa Kashempur",
+    href: "https://www.instagram.com/bardapure_production_official/"
+  },
+  {
     title: "A moment of appreciation",
     category: "Pinned post",
     image: "/images/instagram/hd-kumaraswamy-appreciation.jpg",

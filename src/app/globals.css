@@ -184,6 +184,8 @@ h2 em, h1 em { font-family: var(--serif); font-weight: 400; }
 .creator-form__section-heading small { color: var(--muted); font-size: 9px; font-weight: 400; letter-spacing: 0; text-align: right; text-transform: none; }
 .creator-form__grid > label { display: flex; min-width: 0; flex-direction: row; flex-wrap: wrap; align-content: start; align-items: baseline; gap: 4px 8px; color: var(--ink); font-size: 11px; font-weight: 500; }
 .creator-form__grid input:not([type="file"]), .creator-form__grid select { width: 100%; min-height: 45px; border: 1px solid var(--rule); border-radius: 0; padding: 9px 11px; color: var(--ink); background: rgba(255, 255, 255, .34); font-size: 13px; letter-spacing: 0; transition: border-color .18s ease, background-color .18s ease; }
+.creator-form__grid textarea { width: 100%; min-height: 88px; border: 1px solid var(--rule); border-radius: 0; padding: 10px 11px; color: var(--ink); background: rgba(255, 255, 255, .34); font-size: 13px; resize: vertical; }
+.creator-form__grid textarea:focus { border-color: var(--gold); background: rgba(255, 255, 255, .66); outline: 2px solid var(--gold); outline-offset: 2px; }
 .creator-form__grid input:not([type="file"]):focus, .creator-form__grid select:focus { border-color: var(--gold); background: rgba(255, 255, 255, .66); outline: none; }
 .creator-form__grid input::placeholder { color: #8a8277; }
 .creator-form__grid select { appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2370695e' stroke-width='1.7' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E"); background-position: right 11px center; background-repeat: no-repeat; background-size: 15px; padding-right: 36px; }
@@ -208,6 +210,7 @@ h2 em, h1 em { font-family: var(--serif); font-weight: 400; }
 .creator-form__status { margin: 0; color: #386440; font-size: 10px; line-height: 1.5; }
 .creator-form__status--error { color: #a03428; }
 .creator-form__privacy { margin: 12px 0 0; color: var(--muted); font-size: 8px; line-height: 1.5; }
+.creator-form__privacy svg { display: inline-block; margin-right: 4px; vertical-align: -3px; color: var(--gold); }
 
 .brand-cta { background: var(--paper); }
 .brand-cta__heading { display: flex; align-items: end; justify-content: space-between; gap: 26px; margin: 28px 0 34px; }
@@ -728,6 +731,10 @@ h2 em, h1 em { font-family: var(--serif); font-weight: 400; }
 .feedback-form__status { margin: 0; color: #356144; font-size: 9px; }
 .feedback-form__status--error { color: #9a332a; }
 .feedback-form__privacy { margin: 12px 0 0; color: var(--muted); font-size: 9px; line-height: 1.5; }
+.client-feedback-page { min-height: 75vh; padding-top: 140px; }
+.client-feedback-page .route-heading { margin-bottom: 34px; }
+.client-feedback-page .feedback-form { max-width: 850px; margin-left: auto; }
+.client-feedback-form .feedback-form__status { display: inline-flex; align-items: center; gap: 5px; }
 .creator-role-picker { border-top: 1px solid var(--rule); padding-top: 15px; }
 .creator-role-picker > .eyebrow { margin: 0 0 9px; }
 .creator-page__roles { display: flex; flex-wrap: wrap; gap: 7px; }
@@ -885,6 +892,7 @@ h2 em, h1 em { font-family: var(--serif); font-weight: 400; }
   .home-invite__links { width: 100%; }
   .home-invite__links .button-link { flex: 1; min-width: 0; padding: 0 10px; font-size: 8px; }
   .page-intro, .work-page, .events-page, .creator-page { padding-top: 110px; }
+  .client-feedback-page { padding-top: 110px; }
   .page-intro .about-layout { margin-top: 20px; }
   .about-social { grid-template-columns: 1fr; gap: 22px; padding-top: 52px; padding-bottom: 52px; }
   .about-social__intro h2 { margin: 17px 0 9px; font-size: clamp(38px, 9vw, 55px); }
@@ -1674,4 +1682,94 @@ h2 em, h1 em { font-family: var(--serif); font-weight: 400; }
   .service-row { min-height: 135px; }
   .public-event { grid-template-columns: minmax(0, 1fr); }
   .public-event__poster { aspect-ratio: 1.35; }
+}
+
+.creator-network-application { margin-top: clamp(50px, 7vw, 88px); border-top: 1px solid var(--rule); padding-top: clamp(30px, 5vw, 56px); }
+.creator-network-application > .eyebrow { margin-bottom: 18px; }
+.creator-network-application > h2 { margin: 0; font-family: var(--sans); font-size: clamp(44px, 7vw, 76px); font-weight: 600; letter-spacing: -.08em; line-height: .9; }
+.creator-network-application > h2 em { color: var(--gold); }
+.creator-network-application .creator-role-picker { margin-top: 27px; }
+.creator-page .creator-network-application .creator-form-wrap { margin-top: 24px; }
+.project-registration-page { min-height: 75vh; padding-top: 140px; }
+.project-registration-page > .route-heading { margin-bottom: clamp(30px, 5vw, 58px); }
+.project-registration-page .route-heading > p { max-width: 300px; }
+.project-registration-wrap { max-width: 1000px; margin: 0 auto; }
+.project-registration__back { margin-bottom: 18px; }
+.project-registration-form { max-width: none; border: 1px solid transparent; background: linear-gradient(var(--cream), var(--cream)) padding-box, linear-gradient(140deg, rgba(255,255,255,.9), rgba(170,135,80,.45), rgba(255,255,255,.3)) border-box; box-shadow: 0 22px 65px rgba(38,33,24,.1); }
+.project-registration-form .creator-form__intro h2 { margin: 0; font-family: var(--serif); font-size: clamp(31px, 4.6vw, 48px); font-weight: 400; letter-spacing: -.05em; }
+.project-registration-form .creator-form__intro h2 em { color: var(--gold); }
+.project-registration-form .creator-form__grid textarea { width: 100%; }
+.registration-fee-note { display: flex; flex-direction: column; gap: 5px; border: 1px solid rgba(170,135,80,.35); margin-bottom: 20px; padding: 14px 16px; background: rgba(170,135,80,.08); }
+.registration-fee-note strong { font-size: 14px; }
+.registration-fee-note span { color: #5f594f; font-size: 11px; line-height: 1.55; }
+.registration-fee-note--warning { margin: 18px 0 22px; font-size: 11px; }
+.project-registration-benefits { border: 1px solid var(--rule); margin: 0 0 20px; padding: 15px 16px; background: rgba(255,255,255,.24); }
+.project-registration-benefits h3 { margin: 0 0 10px; font-family: var(--serif); font-size: 21px; font-weight: 400; }
+.project-registration-benefits ul { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px 17px; margin: 0; padding: 0; list-style: none; }
+.project-registration-benefits li { position: relative; padding-left: 16px; color: #514b42; font-size: 10px; line-height: 1.5; }
+.project-registration-benefits li::before { position: absolute; top: .55em; left: 0; width: 6px; height: 6px; border-radius: 50%; background: var(--gold); content: ""; }
+.project-registration-motto { border-left: 2px solid var(--gold); margin: 0 0 20px; padding: 8px 0 8px 14px; color: #715c3c; font-family: var(--serif); font-size: 20px; }
+.project-registration-form .creator-interests__options input,
+.project-registration-form .project-payment-options input[type="radio"] { width: 16px; height: 16px; min-height: 16px; flex: 0 0 16px; border: 0; padding: 0; accent-color: var(--ink); }
+.project-registration__declaration { display: flex; align-items: start; gap: 11px; margin-top: 18px; color: #39352f; font-size: 11px; line-height: 1.6; }
+.project-registration__declaration input { width: 18px; height: 18px; flex: 0 0 18px; margin-top: 1px; accent-color: var(--ink); }
+.project-registration-result { display: flex; max-width: 680px; flex-direction: column; align-items: flex-start; gap: 13px; border: 1px solid rgba(170,135,80,.4); padding: clamp(24px, 5vw, 48px); background: rgba(255,255,255,.3); box-shadow: 0 18px 50px rgba(38,33,24,.08); }
+.project-registration-result > svg { color: #386440; }
+.project-registration-result h2 { margin: 0; font-family: var(--serif); font-size: clamp(38px, 6vw, 60px); font-weight: 400; letter-spacing: -.06em; line-height: .95; }
+.project-registration-result > p { margin: 0; color: var(--muted); font-size: 13px; line-height: 1.65; }
+.project-registration-result__reference { display: flex; flex-direction: column; gap: 4px; border-left: 2px solid var(--gold); margin: 4px 0; padding: 4px 0 4px 14px; }
+.project-registration-result__reference span { color: var(--muted); font-size: 9px; letter-spacing: .08em; text-transform: uppercase; }
+.project-registration-result__reference strong { font-size: 20px; letter-spacing: .1em; }
+.project-registration-result .registration-fee-note { margin: 0; }
+.featured-campaign__image img { object-fit: contain; }
+.upcoming-projects { margin: clamp(52px, 8vw, 104px) 0 0; }
+.upcoming-projects__heading { margin-bottom: 25px; }
+.upcoming-projects__heading .eyebrow { gap: 8px; }
+.upcoming-projects__heading .eyebrow::before { display: none; }
+.upcoming-projects__heading h2 { margin: 16px 0 0; font-family: var(--sans); font-size: clamp(38px, 6vw, 72px); font-weight: 600; letter-spacing: -.08em; line-height: .92; }
+.upcoming-projects__heading h2 em { color: var(--gold); }
+.upcoming-projects__grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; }
+.project-card { display: flex; min-width: 0; flex-direction: column; border: 1px solid transparent; border-radius: 23px; padding: clamp(19px, 3vw, 31px); background: linear-gradient(var(--cream), var(--cream)) padding-box, linear-gradient(140deg, rgba(255,255,255,.95), rgba(170,135,80,.5), rgba(255,255,255,.25)) border-box; box-shadow: 0 18px 44px rgba(38,33,24,.08); transition: transform .24s ease, box-shadow .24s ease; }
+.project-card:hover { transform: translateY(-5px); box-shadow: 0 27px 60px rgba(38,33,24,.14); }
+.project-card__top { display: flex; align-items: center; justify-content: space-between; gap: 9px; color: var(--muted); font-size: 9px; letter-spacing: .08em; text-transform: uppercase; }
+.project-card__status { display: inline-flex; flex: 0 0 auto; align-items: center; gap: 7px; border: 1px solid rgba(170,135,80,.38); border-radius: 999px; padding: 6px 9px; color: #655034; background: rgba(170,135,80,.08); font-size: 8px; letter-spacing: .05em; }
+.project-card__status i { width: 6px; height: 6px; border-radius: 50%; background: var(--gold); }
+.project-card h3 { max-width: 520px; margin: 22px 0 8px; font-family: var(--serif); font-size: clamp(27px, 3vw, 40px); font-weight: 400; letter-spacing: -.045em; line-height: 1.02; }
+.project-card__subtitle { margin: 0 0 10px; color: #715c3c; font-size: 11px; font-weight: 600; }
+.project-card__description { max-width: 420px; margin: 0; color: var(--muted); font-size: 12px; line-height: 1.6; }
+.project-card__highlights { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 9px 12px; margin: 23px 0 16px; padding: 0; list-style: none; }
+.project-card__highlights li { display: flex; min-width: 0; align-items: center; gap: 8px; color: #39352f; font-size: 10px; line-height: 1.35; }
+.project-card__highlights svg { flex: 0 0 16px; color: var(--gold); }
+.project-card__audience { margin: auto 0 19px; border-top: 1px solid var(--rule); padding-top: 13px; color: var(--muted); font-size: 9px; line-height: 1.5; }
+.project-card__action { width: fit-content; min-width: min(100%, 230px); gap: 10px; border-radius: 999px; }
+.project-registration-form .creator-form__grid textarea { min-height: 74px; }
+
+@media (max-width: 760px) {
+  .upcoming-projects { margin-top: 44px; }
+  .upcoming-projects__grid { grid-template-columns: minmax(0, 1fr); gap: 13px; }
+  .project-card { padding: 21px 18px; }
+  .project-card h3 { font-size: clamp(29px, 7vw, 37px); }
+  .project-card__action { width: 100%; }
+  .creator-network-application { margin-top: 43px; padding-top: 29px; }
+  .project-registration-page { padding-top: 110px; }
+  .project-registration-page .route-heading > p { margin: 0; }
+  .project-registration-form { padding: 20px 15px; }
+  .project-registration-form .creator-form__intro { align-items: start; flex-direction: column; gap: 9px; }
+  .project-registration-form .creator-form__intro > p { max-width: none; }
+  .project-registration-form .creator-form__grid { grid-template-columns: minmax(0, 1fr); }
+  .project-registration-form .creator-form__section-heading { align-items: start; flex-direction: column; gap: 4px; }
+  .project-registration-form .creator-form__section-heading small { text-align: left; }
+  .project-registration-form .creator-form__wide { grid-column: 1; }
+  .project-registration-form .creator-form__submit { align-items: start; flex-direction: column; gap: 10px; }
+  .project-registration-form .creator-form__submit .button-link { width: 100%; }
+  .project-registration-form .creator-interests__options { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .project-registration-benefits ul { grid-template-columns: minmax(0, 1fr); gap: 7px; }
+  .project-registration-result { padding: 23px 18px; }
+}
+
+@media (max-width: 390px) {
+  .project-card__top { align-items: flex-start; flex-direction: column; }
+  .project-card__highlights { grid-template-columns: minmax(0, 1fr); }
+  .project-registration-form .creator-interests legend { align-items: start; flex-direction: column; gap: 4px; }
+  .project-registration-form .creator-form__upload > span:first-child { align-items: start; flex-direction: column; gap: 3px; }
 }

@@ -11,7 +11,7 @@ export function AboutStory({ content }) {
       <section className="page-intro section-pad" id="about">
         <span className="eyebrow">01 / About Bardapure</span>
         <div className="about-layout">
-          <div className="about-portrait"><Image src={content.portrait} alt="Bardapure founder at an event" fill sizes="(max-width: 760px) 85vw, 34vw" priority unoptimized /></div>
+          <div className="about-portrait"><Image src={content.portrait} alt="Bardapure founder at an event" fill sizes="(max-width: 760px) 85vw, 34vw" unoptimized /></div>
           <div className="intro__copy">
             <h1>{content.headline}<br /><em>{content.highlight}</em></h1>
             <p>{content.description}</p>

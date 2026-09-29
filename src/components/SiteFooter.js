@@ -10,7 +10,7 @@ export default function SiteFooter({ settings }) {
         <span className="wordmark__text"><span>BARDAPURE</span><span>PRODUCTIONS<sup>®</sup></span></span>
       </Link>
       <div className="footer-links">
-        <Link href="/about">About</Link><Link href="/work">Our work</Link><Link href="/events">Events</Link><Link href="/creators">Creators</Link><Link href="/contact">Contact</Link>
+        <Link href="/about">About</Link><Link href="/work">Our work</Link><Link href="/events">Events</Link><Link href="/creators">Creators</Link><Link href="/feedback">Feedback</Link><Link href="/creators/ifi">IFI</Link><Link href="/contact">Contact</Link>
       </div>
       <div className="footer-social">
         {social.instagram && <a href={social.instagram} target="_blank" rel="noreferrer">Instagram ↗</a>}

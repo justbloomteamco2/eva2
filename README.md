@@ -6,7 +6,7 @@ An editorial Next.js portfolio and creator-registration site built with Bardapur
 
 1. Install dependencies with `npm install`.
 2. Copy `.env.example` to `.env.local` and set the Supabase, rate-limit, email-delivery and cron secrets.
-3. For a new database, run `supabase/schema.sql` in the Supabase SQL editor. For an existing installation, also apply `supabase/migrations/20260927185132_remove_admin_panel.sql` as described below.
+3. For a new database, run `supabase/schema.sql` in the Supabase SQL editor. For an existing installation, apply the relevant unapplied migrations: `supabase/migrations/20260927185132_remove_admin_panel.sql` only if you are performing the documented admin/CMS cleanup, `supabase/migrations/20260929031950_add_project_registrations.sql` to add IFI and Creator Meet-Up registrations, and `supabase/migrations/20260929035246_add_client_feedback_fields.sql` to add client feedback support.
 4. Start the development server with `npm run dev`.
 
 The public site content is bundled with the application. The admin dashboard, admin authentication, private admin APIs and editable CMS have been removed. Event listings remain read-only through the public API.
@@ -19,15 +19,15 @@ The migration does not delete Cloudinary files previously uploaded for event pos
 
 ## Forms and notifications
 
-The **event attendee feedback** form is on `/events`. The separate **job / creator application** form is on `/creators`. Both forms show loading, success and error states, validate input on the server, and store submissions privately. Event feedback and creator applications are sent as separate CSV emails to the fixed `ADMIN_EMAIL` recipient.
+The **event attendee feedback** form is on `/events`; the **client feedback** form is on `/feedback` and asks for a name, one contact method and project feedback. Both show loading, success and error states, validate input on the server, and deliver feedback privately to the team. The **job / creator application** form remains on `/creators`; upcoming projects link to the **IFI registration** (`/creators/ifi`) and **Creator Meet-Up registration** (`/creators/meetup`) forms. Registrations show loading, success and error states, validate input on the server, and store submissions and photos privately. IFI registration records a ₹1,000 fee as pending; payment is handled separately and is not collected by the website. Each successful submission displays a reference number.
 
 Configure server-only `RESEND_API_KEY`, `FEEDBACK_EMAIL_FROM` (an address on a Resend-verified domain), and `ADMIN_EMAIL` (the notification inbox). Failed email deliveries remain queued and Vercel retries them daily using `CRON_SECRET`. Creator application CSVs omit private profile-photo storage paths.
 
-The public enquiry, creator application and event feedback endpoints share the atomic Supabase rate limiter: three requests per IP hash per five minutes. It reads only the configured trusted proxy header (`x-real-ip` on Vercel; `cf-connecting-ip` on Cloudflare), validates the value, and ignores `X-Forwarded-For`. Do not expose a direct origin that accepts client-supplied proxy headers.
+The public enquiry, creator application, event feedback and project registration endpoints share the atomic Supabase rate limiter: three requests per IP hash per five minutes. It reads only the configured trusted proxy header (`x-real-ip` on Vercel; `cf-connecting-ip` on Cloudflare), validates the value, and ignores `X-Forwarded-For`. Do not expose a direct origin that accepts client-supplied proxy headers.
 
 ## Public routes and API
 
-Public pages: `/`, `/work`, `/events`, `/creators`, `/about`, and `/contact`.
+Public pages: `/`, `/work`, `/events`, `/creators`, `/creators/ifi`, `/creators/meetup`, `/feedback`, `/about`, and `/contact`.
 
 All API errors use `{ "error": "..." }`; public form submissions return JSON. The event API returns only published records, paginated by 20:
 
@@ -35,13 +35,14 @@ All API errors use `{ "error": "..." }`; public form submissions return JSON. Th
 | --- | --- |
 | `POST /api/enquiries` | Save a brand or project enquiry |
 | `POST /api/creators` | Save a creator/job application and private profile photo |
-| `POST /api/feedback` | Save event-attendee feedback |
+| `POST /api/project-registrations` | Save an IFI or Creator Meet-Up registration and private photos |
+| `POST /api/feedback` | Save event-attendee or client feedback |
 | `GET /api/events?view=upcoming&page=1` | List published upcoming events |
 | `GET /api/events?view=archive&page=1` | List published past events |
 | `GET /api/maintenance/creator-photos` | Remove unclaimed creator photos; requires the cron bearer secret |
 | `GET /api/maintenance/feedback-email` | Retry pending CSV notifications; requires the cron bearer secret |
 
-Public submissions use bounded request sizes, Zod validation, same-origin checks, honeypot fields and rate limiting. Creator photos accept JPEG, PNG and WebP up to 5 MB and stay in a private Supabase Storage bucket.
+Public submissions use bounded request sizes, Zod validation, same-origin checks, honeypot fields and rate limiting. Registration photos accept JPEG, PNG and WebP up to 5 MB each and stay in private Supabase Storage buckets. IFI accepts up to three additional portfolio images. Apply both new migrations before enabling the registration and client-feedback forms on a deployment.
 
 ## Technology and current hosting
 

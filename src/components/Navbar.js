@@ -10,6 +10,8 @@ const links = [
   ["Work", "/work"],
   ["Events", "/events"],
   ["Creators", "/creators"],
+  ["Feedback", "/feedback"],
+  ["IFI", "/creators/ifi"],
   ["Contact", "/contact"]
 ];
 

@@ -110,7 +110,7 @@ export default function CreatorRegistrationForm({ initialCategory = "", onCatego
       <div className="creator-form__grid">
         <div className="creator-form__section-heading"><span>01 / The essentials</span><small>Required to create your profile</small></div>
         <label>Full name <span className="form-field__meta">Required</span><input required name="name" autoComplete="name" minLength={2} maxLength={100} value={values.name} onChange={update} /></label>
-        <label>Phone number <span className="form-field__meta">Required</span><input required name="phone" type="tel" autoComplete="tel" inputMode="tel" pattern="[0-9+\(\) .\-]{8,20}" maxLength={20} placeholder="+91 98765 43210" value={values.phone} onChange={update} /></label>
+        <label>Phone number <span className="form-field__meta">Required</span><input required name="phone" type="tel" autoComplete="tel" inputMode="tel" pattern="[0-9+\(\) .\-]{8,20}" maxLength={20} placeholder="+91 12345 67890" value={values.phone} onChange={update} /></label>
         <label>Email address <span className="form-field__meta">Required</span><input required name="email" type="email" autoComplete="email" maxLength={254} value={values.email} onChange={update} /></label>
         <label>City <span className="form-field__meta">Required</span><input required name="city" autoComplete="address-level2" minLength={2} maxLength={100} placeholder="Where are you based?" value={values.city} onChange={update} /></label>
         <label>Age <span className="form-field__meta">18+ · Required</span><input required name="age" type="number" min={18} max={100} inputMode="numeric" value={values.age} onChange={update} /></label>

@@ -31,7 +31,7 @@ export async function GET(request) {
     const sources = [
       {
         table: "feedback",
-        select: "id,name,attendee_email,event,event_date,rating,would_attend_again,what_went_well,what_to_improve,created_at",
+        select: "id,feedback_type,name,attendee_email,attendee_phone,client_project,event,event_date,rating,would_attend_again,what_went_well,what_to_improve,message,created_at",
         send: sendFeedbackCsvEmail
       },
       {

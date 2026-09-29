@@ -41,7 +41,7 @@ function RecognitionCard({ post, index }) {
     >
       <span className="about-post__frame">
         <span className="about-post__image">
-          <Image src={post.image} alt={post.alt} fill sizes="(max-width: 640px) 85vw, 35vw" priority={index === 0} unoptimized />
+          <Image src={post.image} alt={post.alt} fill sizes="(max-width: 640px) 85vw, 35vw" unoptimized />
           <span className="about-post__open">Open pinned post <ArrowUpRight size={16} /></span>
         </span>
         <span className="about-post__meta">

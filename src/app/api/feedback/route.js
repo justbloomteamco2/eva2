@@ -7,9 +7,13 @@ import { sendFeedbackCsvEmail } from "../../../lib/feedback-email";
 export const runtime = "nodejs";
 
 const feedbackSchema = z.object({
-  name: z.string().trim().max(100).default("").transform((value) => value || "Anonymous attendee"),
+  type: z.enum(["event", "client"]).default("event"),
+  name: z.string().trim().max(100).default(""),
   attendee_email: z.union([z.literal(""), z.string().trim().email().max(254)]).default(""),
-  event: z.string().trim().min(2).max(200),
+  attendee_phone: z.string().trim().max(20).default(""),
+  client_project: z.string().trim().max(160).default(""),
+  client_feedback: z.string().trim().max(2000).default(""),
+  event: z.string().trim().max(200).default(""),
   event_date: z.union([
     z.literal(""),
     z.string().regex(/^\d{4}-\d{2}-\d{2}$/).refine((value) => {
@@ -18,14 +22,41 @@ const feedbackSchema = z.object({
     }, "Enter a valid event date.")
   ]).default(""),
   rating: z.coerce.number().int().min(1).max(5),
-  would_attend_again: z.enum(["yes", "maybe", "no"]),
+  would_attend_again: z.enum(["", "yes", "maybe", "no"]).default(""),
   what_went_well: z.string().trim().max(900).default(""),
   what_to_improve: z.string().trim().max(900).default(""),
   website: z.string().max(0).optional().default("")
-}).strict().refine(
-  (data) => data.what_went_well.length >= 10 || data.what_to_improve.length >= 10,
-  { message: "Share at least one note of 10 characters or more.", path: ["what_to_improve"] }
-);
+}).strict().superRefine((data, context) => {
+  if (data.attendee_phone && !/^[+0-9().\s-]{8,20}$/.test(data.attendee_phone)) {
+    context.addIssue({ code: "custom", message: "Enter a valid phone number.", path: ["attendee_phone"] });
+  }
+
+  if (data.type === "client") {
+    if (data.name.length < 2) {
+      context.addIssue({ code: "custom", message: "Enter your name.", path: ["name"] });
+    }
+    if (data.client_project.length < 2) {
+      context.addIssue({ code: "custom", message: "Tell us which project or service this is about.", path: ["client_project"] });
+    }
+    if (!data.attendee_email && !data.attendee_phone) {
+      context.addIssue({ code: "custom", message: "Add an email address or phone number so we can follow up.", path: ["attendee_email"] });
+    }
+    if (data.client_feedback.length < 10) {
+      context.addIssue({ code: "custom", message: "Share at least 10 characters of feedback.", path: ["client_feedback"] });
+    }
+    return;
+  }
+
+  if (data.event.length < 2) {
+    context.addIssue({ code: "custom", message: "Enter the event name.", path: ["event"] });
+  }
+  if (!data.would_attend_again) {
+    context.addIssue({ code: "custom", message: "Choose whether you would attend another event.", path: ["would_attend_again"] });
+  }
+  if (data.what_went_well.length < 10 && data.what_to_improve.length < 10) {
+    context.addIssue({ code: "custom", message: "Share at least one note of 10 characters or more.", path: ["what_to_improve"] });
+  }
+});
 
 function json(body, status = 200) {
   return NextResponse.json(body, { status, headers: { "Cache-Control": "no-store" } });
@@ -53,8 +84,12 @@ export async function POST(request) {
     if (limit.missingIp) return json({ error: "This submission could not be verified." }, 400);
     if (!limit.allowed) return json({ error: "Please wait before sending more feedback." }, 429);
     const {
+      type,
       name,
       attendee_email,
+      attendee_phone,
+      client_project,
+      client_feedback,
       event,
       event_date,
       rating,
@@ -62,23 +97,28 @@ export async function POST(request) {
       what_went_well,
       what_to_improve
     } = parsed.data;
-    const message = [
-      what_went_well ? `What they enjoyed:\n${what_went_well}` : "",
-      what_to_improve ? `What to improve:\n${what_to_improve}` : ""
-    ].filter(Boolean).join("\n\n");
+    const feedbackMessage = type === "client"
+      ? client_feedback
+      : [
+          what_went_well ? `What they enjoyed:\n${what_went_well}` : "",
+          what_to_improve ? `What to improve:\n${what_to_improve}` : ""
+        ].filter(Boolean).join("\n\n");
     const { data: feedback, error } = await client.from("feedback")
       .insert({
-        name,
+        feedback_type: type,
+        name: type === "client" ? name : name || "Anonymous attendee",
         attendee_email,
-        event,
-        event_date: event_date || null,
+        attendee_phone,
+        client_project: type === "client" ? client_project : "",
+        event: type === "client" ? "Client feedback" : event,
+        event_date: type === "event" ? event_date || null : null,
         rating,
-        would_attend_again,
-        what_went_well,
-        what_to_improve,
-        message
+        would_attend_again: type === "event" ? would_attend_again : null,
+        what_went_well: type === "event" ? what_went_well : "",
+        what_to_improve: type === "event" ? what_to_improve : "",
+        message: feedbackMessage
       })
-      .select("id,name,attendee_email,event,event_date,rating,would_attend_again,what_went_well,what_to_improve,message,created_at")
+      .select("id,feedback_type,name,attendee_email,attendee_phone,client_project,event,event_date,rating,would_attend_again,what_went_well,what_to_improve,message,created_at")
       .single();
     if (error) throw new Error(`Feedback could not be saved: ${error.message}`);
 
