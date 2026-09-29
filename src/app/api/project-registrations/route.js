@@ -61,7 +61,42 @@ const commonSchema = z.object({
     .refine((values) => new Set(values).size === values.length),
   termsAccepted: z.literal("true"),
   website: z.string().max(0).default("")
-}).strict();
+}).strict().superRefine((data, context) => {
+  if (data.project === "ifi") {
+    if (!data.dateOfBirth || !isOlderThan16(data.dateOfBirth)) {
+      context.addIssue({
+        code: "custom",
+        path: ["dateOfBirth"],
+        message: "Applicants must be older than 16 years."
+      });
+    }
+    if (data.about.trim().length < 30) {
+      context.addIssue({
+        code: "custom",
+        path: ["about"],
+        message: "Tell us about yourself in at least 30 characters."
+      });
+    }
+    return;
+  }
+
+  if (data.whatsapp.length < 8 || !/^[+0-9().\s-]{8,20}$/.test(data.whatsapp)) {
+    context.addIssue({ code: "custom", path: ["whatsapp"], message: "Enter a valid WhatsApp number." });
+  }
+  if (!data.instagram) {
+    context.addIssue({ code: "custom", path: ["instagram"], message: "Instagram is required." });
+  }
+  if (data.preferredCity.length < 2) {
+    context.addIssue({ code: "custom", path: ["preferredCity"], message: "Preferred city is required." });
+  }
+  if (!data.collaborationInterests.length) {
+    context.addIssue({
+      code: "custom",
+      path: ["collaborationInterests"],
+      message: "Select at least one collaboration interest."
+    });
+  }
+});
 
 function json(body, status = 200) {
   return NextResponse.json(body, { status, headers: { "Cache-Control": "no-store" } });
@@ -70,6 +105,17 @@ function json(body, status = 200) {
 function getValue(formData, name) {
   const value = formData.get(name);
   return typeof value === "string" ? value : "";
+}
+
+function isOlderThan16(dateOfBirth) {
+  const [year, month, day] = dateOfBirth.split("-").map(Number);
+  const today = new Date();
+  let age = today.getUTCFullYear() - year;
+  const birthdayHasNotOccurred =
+    today.getUTCMonth() + 1 < month
+    || (today.getUTCMonth() + 1 === month && today.getUTCDate() < day);
+  if (birthdayHasNotOccurred) age -= 1;
+  return age > 16;
 }
 
 function validateImages(files, required) {
@@ -194,18 +240,11 @@ export async function POST(request) {
 
   if (project === "ifi") {
     if (!ifiCategories.includes(getValue(formData, "category"))) return json({ error: "Choose a valid talent category." }, 400);
-    if (!data.dateOfBirth || data.keySkills.trim().length < 2 || data.about.trim().length < 10) {
-      return json({ error: "Complete all required IFI registration details." }, 400);
-    }
     if (data.instagram && !/^(@?[a-zA-Z0-9._]{1,80}|https:\/\/(www\.)?instagram\.com\/[a-zA-Z0-9._/]+\/?)$/i.test(data.instagram)) {
       return json({ error: "Enter a valid Instagram username or profile link." }, 400);
     }
   } else {
     if (!meetupCategories.includes(getValue(formData, "category"))) return json({ error: "Choose a valid creator category." }, 400);
-    if (data.whatsapp.length < 8 || !data.instagram || !data.preferredCity || !data.termsAccepted) {
-      return json({ error: "Complete all required Creator Meet-Up details." }, 400);
-    }
-    if (!/^[+0-9().\s-]{8,20}$/.test(data.whatsapp)) return json({ error: "Enter a valid WhatsApp number." }, 400);
   }
 
   const collaborationInterests = formData.getAll("collaborationInterests");

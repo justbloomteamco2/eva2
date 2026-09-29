@@ -29,6 +29,9 @@ export default function ProjectRegistrationForm({ project }) {
   const [photoName, setPhotoName] = useState("");
   const [additionalPhotoNames, setAdditionalPhotoNames] = useState([]);
   const [registration, setRegistration] = useState(null);
+  const latestIfiBirthDate = new Date();
+  latestIfiBirthDate.setUTCFullYear(latestIfiBirthDate.getUTCFullYear() - 17);
+  const maxIfiBirthDate = latestIfiBirthDate.toISOString().slice(0, 10);
 
   function validatePhoto(event, multiple = false) {
     const files = Array.from(event.target.files || []);
@@ -57,6 +60,14 @@ export default function ProjectRegistrationForm({ project }) {
     const formData = new FormData(form);
     formData.set("project", project);
     formData.set("termsAccepted", formData.get("termsAccepted") ? "true" : "false");
+    if (!isIfi && !formData.getAll("collaborationInterests").length) {
+      const message = "Select at least one collaboration interest.";
+      setStatus("error");
+      setMessage(message);
+      notify(message, "error");
+      form.querySelector('[name="collaborationInterests"]')?.focus();
+      return;
+    }
 
     try {
       const response = await fetch("/api/project-registrations", { method: "POST", body: formData });
@@ -123,7 +134,7 @@ export default function ProjectRegistrationForm({ project }) {
           <div className="creator-form__grid">
             <div className="creator-form__section-heading"><span>01 / Personal details</span><small>All fields marked required must be completed</small></div>
             <label>Full name <span className="form-field__meta">Required</span><input required name="fullName" autoComplete="name" minLength={2} maxLength={100} /></label>
-            {isIfi && <label>Date of birth <span className="form-field__meta">Required</span><input required name="dateOfBirth" type="date" autoComplete="bday" /></label>}
+            {isIfi && <label>Date of birth <span className="form-field__meta">Required · You must be older than 16</span><input required name="dateOfBirth" type="date" autoComplete="bday" max={maxIfiBirthDate} /></label>}
             {!isIfi && <label>Date of birth <span className="form-field__meta">Optional</span><input name="dateOfBirth" type="date" autoComplete="bday" /></label>}
             <label>Gender <span className="form-field__meta">Required</span><select required name="gender" defaultValue=""><option value="">Choose an option</option>{genderOptions.map((item) => <option key={item}>{item}</option>)}</select></label>
             <label>Mobile number <span className="form-field__meta">Required</span><input required name="phone" type="tel" autoComplete="tel" inputMode="tel" pattern="[0-9+() .-]{8,20}" maxLength={20} placeholder="+91 12345 67890" /></label>
@@ -137,7 +148,7 @@ export default function ProjectRegistrationForm({ project }) {
             <label>{isIfi ? "YouTube / social profile" : "YouTube channel"} <span className="form-field__meta">Optional</span><input name="youtube" type="url" maxLength={500} placeholder="https://" /></label>
             {!isIfi && <label>Other social media links <span className="form-field__meta">Optional</span><input name="otherSocialMedia" maxLength={1000} placeholder="Add your other profile links" /></label>}
             <label className="creator-form__wide">Key skills / talent <span className="form-field__meta">Required</span><textarea required name="keySkills" minLength={2} maxLength={500} rows={3} placeholder="What do you create or do best?" /></label>
-            <label className="creator-form__wide">{isIfi ? "About yourself" : "Tell us about yourself"} <span className="form-field__meta">{isIfi ? "Required" : "Optional"}</span><textarea name="about" required={isIfi} minLength={isIfi ? 10 : undefined} maxLength={2000} rows={4} placeholder="A little about you, your experience and what you’re looking for" /></label>
+            <label className="creator-form__wide">{isIfi ? "About yourself" : "Tell us about yourself"} <span className="form-field__meta">{isIfi ? "Required · At least 30 characters" : "Optional"}</span><textarea name="about" required={isIfi} minLength={isIfi ? 30 : undefined} maxLength={2000} rows={4} placeholder="A little about you, your experience and what you’re looking for" /></label>
             {!isIfi && <label className="creator-form__wide">Portfolio / work link <span className="form-field__meta">Optional</span><input name="portfolio" type="url" maxLength={500} placeholder="https://" /></label>}
 
             <label className="creator-form__upload creator-form__wide">
@@ -160,7 +171,7 @@ export default function ProjectRegistrationForm({ project }) {
                 <label>Preferred meet-up date <span className="form-field__meta">Optional</span><input name="preferredMeetupDate" type="date" /></label>
                 <label>How did you hear about us? <span className="form-field__meta">Optional</span><select name="heardFrom" defaultValue=""><option value="">Choose one</option>{referralOptions.map((item) => <option key={item}>{item}</option>)}</select></label>
                 <fieldset className="creator-interests creator-form__wide">
-                  <legend>What are you interested in? <span>Optional · Select all that apply</span></legend>
+                  <legend>What are you interested in? <span>Required · Select at least one</span></legend>
                   <div className="creator-interests__options">
                     {collaborationOptions.map((item) => <label key={item}><input type="checkbox" name="collaborationInterests" value={item} /><span>{item}</span></label>)}
                   </div>

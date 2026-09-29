@@ -1442,6 +1442,52 @@ h2 em, h1 em { font-family: var(--serif); font-weight: 400; }
   transform: skewY(-35deg);
 }
 .community-note--2 .community-note__tail { right: -1px; left: auto; transform: skewY(35deg); }
+.community-note__category { position: absolute; bottom: 22px; left: clamp(21px, 3vw, 36px); color: var(--muted); font-size: 10px; letter-spacing: .08em; text-transform: uppercase; }
+.community-note__like {
+  position: absolute;
+  right: clamp(21px, 3vw, 36px);
+  bottom: 18px;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  border: 1px solid rgba(46, 38, 25, .14);
+  border-radius: 999px;
+  padding: 8px 12px;
+  background: rgba(255, 255, 255, .65);
+  color: var(--muted);
+  cursor: pointer;
+}
+.community-note__like.is-liked { color: #a44448; }
+.community-reviews__notice { max-width: 650px; margin: 17px 0 0; color: var(--muted); font-size: 12px; line-height: 1.7; }
+.community-review-form {
+  max-width: 1030px;
+  margin: 34px auto 0;
+  border: 1px solid rgba(255, 255, 255, .84);
+  border-radius: 24px;
+  padding: clamp(20px, 3vw, 32px);
+  background: rgba(255, 255, 255, .48);
+}
+.community-review-form h3 { margin: 0 0 18px; font-family: var(--serif); font-size: 25px; }
+.community-review-form__fields { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 15px; }
+.community-review-form__fields label { display: grid; gap: 8px; color: var(--muted); font-size: 11px; }
+.community-review-form__fields input,
+.community-review-form__fields select,
+.community-review-form__fields textarea {
+  width: 100%;
+  border: 1px solid rgba(46, 38, 25, .18);
+  border-radius: 10px;
+  padding: 11px 12px;
+  background: rgba(255, 255, 255, .75);
+  color: var(--ink);
+  font: inherit;
+}
+.community-review-form__wide { grid-column: 1 / -1; }
+.community-review-form__submit { margin-top: 15px; border: 0; cursor: pointer; }
+.community-review-form__status { min-height: 1em; margin: 10px 0 0; color: var(--muted); font-size: 11px; }
+@media (max-width: 760px) {
+  .community-review-form__fields { grid-template-columns: 1fr; }
+  .community-review-form__wide { grid-column: auto; }
+}
 
 .public-event {
   overflow: hidden;
