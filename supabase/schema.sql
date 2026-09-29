@@ -13,6 +13,8 @@ create table if not exists public.enquiries (
     'Something else'
   )),
   message text not null check (char_length(message) between 10 and 4000),
+  email_sent_at timestamptz,
+  email_attempted_at timestamptz,
   created_at timestamptz not null default now()
 );
 
@@ -29,7 +31,10 @@ alter table public.enquiries add constraint enquiries_category_check check (cate
 
 alter table public.enquiries enable row level security;
 revoke all on public.enquiries from public, anon, authenticated;
-grant insert, select on public.enquiries to service_role;
+grant insert, select, update on public.enquiries to service_role;
+create index if not exists enquiries_email_pending_idx
+  on public.enquiries (email_attempted_at, created_at, id)
+  where email_sent_at is null;
 
 create table if not exists public.creator_registrations (
   id uuid primary key default gen_random_uuid(),
@@ -357,6 +362,8 @@ create table if not exists public.project_registrations (
   payment_amount_paise integer not null default 0 check (payment_amount_paise >= 0),
   payment_currency text not null default 'INR' check (payment_currency = 'INR'),
   payment_paid_at timestamptz,
+  email_sent_at timestamptz,
+  email_attempted_at timestamptz,
   created_at timestamptz not null default now(),
   constraint project_registration_category_valid check (
     (project = 'ifi' and category in ('Model', 'Actor', 'Creator', 'Influencer', 'Dancer', 'Artist', 'Performer', 'Other'))
@@ -407,6 +414,9 @@ create index if not exists project_registrations_created_at_idx
   on public.project_registrations (created_at desc);
 create index if not exists project_registrations_project_status_created_idx
   on public.project_registrations (project, registration_status, created_at desc);
+create index if not exists project_registrations_email_pending_idx
+  on public.project_registrations (email_attempted_at, created_at, id)
+  where email_sent_at is null;
 
 insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
 values (

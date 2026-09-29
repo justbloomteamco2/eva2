@@ -143,7 +143,7 @@ export async function POST(request) {
       interests: parsed.data.interests,
       photo_path: photoPath
     })
-      .select("id, name, phone, email, city, age, category, instagram, portfolio, audience_size, languages, skills, interests, created_at")
+      .select("id, name, phone, email, city, age, category, instagram, portfolio, audience_size, languages, skills, interests, photo_path, created_at")
       .single());
   } catch (error) {
     await removeUnclaimedPhoto(client, photoPath);
@@ -164,7 +164,7 @@ export async function POST(request) {
       .is("email_sent_at", null);
     if (attemptError) throw new Error(`Application email attempt could not be saved: ${attemptError.message}`);
 
-    await sendCreatorApplicationCsvEmail(application);
+    await sendCreatorApplicationCsvEmail(application, client);
     const { error: updateError } = await client.from("creator_registrations")
       .update({ email_sent_at: new Date().toISOString() })
       .eq("id", application.id)

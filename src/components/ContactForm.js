@@ -31,9 +31,13 @@ export default function ContactForm({ category = "Brand partnership" }) {
       const result = await readApiResponse(response);
       if (!response.ok) throw new Error(result.error || "Something went wrong. Please try again.");
       setStatus("success");
-      setMessage("Thank you. We’ll be in touch soon.");
+      setMessage(result.notificationPending
+        ? "Your enquiry was received. Its email notification is queued for retry."
+        : "Thank you. We’ll be in touch soon.");
       setValues({ ...initialState, category });
-      notify("Your enquiry was sent. We’ll be in touch soon.");
+      notify(result.notificationPending
+        ? "Your enquiry was received; its email notification is queued for retry."
+        : "Your enquiry was sent. We’ll be in touch soon.");
     } catch (error) {
       const errorMessage = error.message || "We couldn’t send that just now. Please try again.";
       setStatus("error");

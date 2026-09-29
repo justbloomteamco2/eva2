@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { hasTrustedOrigin, readBoundedJson } from "../../../lib/http";
 import { allowRateLimitedRequest, getSupabaseAdmin } from "../../../lib/supabase-admin";
+import { sendEnquiryCsvEmail } from "../../../lib/feedback-email";
 
 export const runtime = "nodejs";
 
@@ -67,19 +68,40 @@ export async function POST(request) {
   }
 
   const { name, email, organisation, message, category } = parsed.data;
+  let enquiry;
   try {
-    const { error: insertError } = await client.from("enquiries").insert({
+    const { data, error: insertError } = await client.from("enquiries").insert({
       name,
       email,
       organisation,
       message,
       category
-    });
+    }).select("id,name,email,organisation,category,message,created_at").single();
     if (insertError) throw new Error(insertError.message);
+    enquiry = data;
   } catch (error) {
     console.error("Enquiry could not be saved:", error.message);
     return json({ error: "We couldn’t save your enquiry. Please try again or contact us on Instagram." }, 500);
   }
 
-  return json({ ok: true });
+  let notificationPending = false;
+  try {
+    const { error: attemptError } = await client.from("enquiries")
+      .update({ email_attempted_at: new Date().toISOString() })
+      .eq("id", enquiry.id)
+      .is("email_sent_at", null);
+    if (attemptError) throw new Error(`Enquiry email attempt could not be saved: ${attemptError.message}`);
+
+    await sendEnquiryCsvEmail(enquiry);
+    const { error: updateError } = await client.from("enquiries")
+      .update({ email_sent_at: new Date().toISOString() })
+      .eq("id", enquiry.id)
+      .is("email_sent_at", null);
+    if (updateError) throw new Error(`Enquiry email status could not be saved: ${updateError.message}`);
+  } catch (emailError) {
+    notificationPending = true;
+    console.error("Enquiry email delivery failed:", emailError.message);
+  }
+
+  return json({ ok: true, notificationPending });
 }

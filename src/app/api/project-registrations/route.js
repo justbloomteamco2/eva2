@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { allowRateLimitedRequest, getSupabaseAdmin } from "../../../lib/supabase-admin";
 import { hasTrustedOrigin } from "../../../lib/http";
+import { sendProjectRegistrationCsvEmail } from "../../../lib/feedback-email";
 
 export const runtime = "nodejs";
 
@@ -233,9 +234,10 @@ export async function POST(request) {
   const registrationId = randomUUID();
   const referenceNumber = `${project === "ifi" ? "IFI" : "BCM"}-${registrationId.slice(0, 8).toUpperCase()}`;
   let uploadedPaths = [];
+  let registration;
   try {
     uploadedPaths = await uploadFiles(client, files, registrationId);
-    const { data: registration, error } = await client.from("project_registrations").insert({
+    const { data, error } = await client.from("project_registrations").insert({
       id: registrationId,
       reference_number: referenceNumber,
       project,
@@ -266,18 +268,40 @@ export async function POST(request) {
       payment_status: project === "ifi" ? "pending" : "not_required",
       payment_amount_paise: project === "ifi" ? 100000 : 0,
       payment_currency: "INR"
-    }).select("id, reference_number").single();
+    }).select("*").single();
 
     if (error) throw new Error(`Project registration could not be saved: ${error.message}`);
-    return json({
-      ok: true,
-      registrationId: registration.id,
-      referenceNumber: registration.reference_number
-    });
+    registration = data;
   } catch (error) {
     await removeUploadedFiles(client, uploadedPaths);
     if (error.status === 400) return json({ error: error.message }, 400);
     console.error("Project registration could not be completed:", error.message);
     return json({ error: "We couldn’t save your registration. Please try again." }, 500);
   }
+
+  let notificationPending = false;
+  try {
+    const { error: attemptError } = await client.from("project_registrations")
+      .update({ email_attempted_at: new Date().toISOString() })
+      .eq("id", registration.id)
+      .is("email_sent_at", null);
+    if (attemptError) throw new Error(`Project registration email attempt could not be saved: ${attemptError.message}`);
+
+    await sendProjectRegistrationCsvEmail(registration, client);
+    const { error: updateError } = await client.from("project_registrations")
+      .update({ email_sent_at: new Date().toISOString() })
+      .eq("id", registration.id)
+      .is("email_sent_at", null);
+    if (updateError) throw new Error(`Project registration email status could not be saved: ${updateError.message}`);
+  } catch (emailError) {
+    notificationPending = true;
+    console.error("Project registration email delivery failed:", emailError.message);
+  }
+
+  return json({
+    ok: true,
+    registrationId: registration.id,
+    referenceNumber: registration.reference_number,
+    notificationPending
+  });
 }

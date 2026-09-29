@@ -10,12 +10,29 @@ function createCsv(record, columns) {
   return `\uFEFF${header}\r\n${row}`;
 }
 
-async function sendCsvEmail({ record, columns, type, filename, subject, text }) {
+async function sendCsvEmail({
+  record, columns, type, filename, subject, text, client, mediaPaths = [], bucket
+}) {
   const apiKey = process.env.RESEND_API_KEY;
   const from = process.env.FEEDBACK_EMAIL_FROM;
-  const recipient = process.env.ADMIN_EMAIL;
+  const recipient = process.env.SUBMISSION_NOTIFICATION_EMAIL || process.env.ADMIN_EMAIL;
   if (!apiKey || !from || !recipient) {
-    throw new Error("RESEND_API_KEY, FEEDBACK_EMAIL_FROM and ADMIN_EMAIL must be configured.");
+    throw new Error("RESEND_API_KEY, FEEDBACK_EMAIL_FROM and SUBMISSION_NOTIFICATION_EMAIL (or ADMIN_EMAIL) must be configured.");
+  }
+
+  let linksText = "";
+  if (mediaPaths.length) {
+    if (!client) throw new Error("Supabase client is required for private submission attachments.");
+    const { data, error } = await client.storage.from(bucket)
+      .createSignedUrls(mediaPaths, 60 * 60 * 24 * 7);
+    if (error) throw new Error(`Private submission attachment links could not be created: ${error.message}`);
+    if (!data || data.length !== mediaPaths.length || data.some((file) => !file.signedUrl)) {
+      throw new Error("Private submission attachment links could not be created.");
+    }
+    linksText = `\n\nPrivate file links (available for 7 days):\n${data.map((file, index) => {
+      const fileName = mediaPaths[index].split("/").at(-1);
+      return `${fileName}: ${file.signedUrl}`;
+    }).join("\n")}`;
   }
 
   const csv = createCsv(record, columns);
@@ -30,7 +47,7 @@ async function sendCsvEmail({ record, columns, type, filename, subject, text }) 
       from,
       to: [recipient],
       subject,
-      text,
+      text: `${text}${linksText}`,
       attachments: [{
         filename,
         content: Buffer.from(csv, "utf8").toString("base64"),
@@ -45,21 +62,8 @@ async function sendCsvEmail({ record, columns, type, filename, subject, text }) 
   }
 }
 
-export async function sendFeedbackCsvEmail(feedback, client) {
+export function sendFeedbackCsvEmail(feedback, client) {
   const isClientFeedback = feedback.feedback_type === "client";
-  let attachmentText = "";
-  if (feedback.media_paths?.length) {
-    const { data, error } = await client.storage.from("feedback-attachments")
-      .createSignedUrls(feedback.media_paths, 60 * 60 * 24 * 7);
-    if (error) throw new Error(`Feedback attachment links could not be created: ${error.message}`);
-    if (!data || data.length !== feedback.media_paths.length || data.some((file) => !file.signedUrl)) {
-      throw new Error("Feedback attachment links could not be created.");
-    }
-    attachmentText = `\n\nPrivate media links (available for 7 days):\n${data.map((file, index) => {
-      const filename = feedback.media_paths[index].split("/").at(-1);
-      return `${filename}: ${file.signedUrl}`;
-    }).join("\n")}`;
-  }
   return sendCsvEmail({
     record: feedback,
     columns: [
@@ -70,11 +74,14 @@ export async function sendFeedbackCsvEmail(feedback, client) {
     type: isClientFeedback ? "client-feedback" : "feedback",
     filename: `${isClientFeedback ? "client-feedback" : "feedback"}-${feedback.id}.csv`,
     subject: isClientFeedback ? "New client feedback received" : "New event feedback received",
-    text: `A new ${isClientFeedback ? "client" : "event"} feedback submission is attached as a CSV file.${attachmentText}`
+    text: `A new ${isClientFeedback ? "client" : "event"} feedback submission is attached as a CSV file.`,
+    client,
+    mediaPaths: feedback.media_paths || [],
+    bucket: "feedback-attachments"
   });
 }
 
-export function sendCreatorApplicationCsvEmail(application) {
+export function sendCreatorApplicationCsvEmail(application, client) {
   return sendCsvEmail({
     record: application,
     columns: [
@@ -84,6 +91,43 @@ export function sendCreatorApplicationCsvEmail(application) {
     type: "creator-application",
     filename: `creator-application-${application.id}.csv`,
     subject: "New creator/job application received",
-    text: "A new creator/job application is attached as a CSV file. The profile photo remains available in the private application system."
+    text: "A new creator/job application is attached as a CSV file.",
+    client,
+    mediaPaths: [application.photo_path].filter(Boolean),
+    bucket: "creator-photos"
+  });
+}
+
+export function sendEnquiryCsvEmail(enquiry) {
+  return sendCsvEmail({
+    record: enquiry,
+    columns: ["id", "name", "email", "organisation", "category", "message", "created_at"],
+    type: "enquiry",
+    filename: `enquiry-${enquiry.id}.csv`,
+    subject: "New website enquiry received",
+    text: "A new website enquiry is attached as a CSV file."
+  });
+}
+
+export function sendProjectRegistrationCsvEmail(registration, client) {
+  return sendCsvEmail({
+    record: registration,
+    columns: [
+      "id", "reference_number", "project", "full_name", "date_of_birth", "gender", "phone",
+      "whatsapp", "email", "city", "state", "category", "instagram", "youtube",
+      "other_social_media", "key_skills", "about", "portfolio", "collaboration_interests",
+      "preferred_collaborators", "interested_in_future", "preferred_city",
+      "preferred_meetup_date", "heard_from", "payment_status", "payment_amount_paise",
+      "payment_currency", "created_at"
+    ],
+    type: "project-registration",
+    filename: `project-registration-${registration.reference_number}.csv`,
+    subject: registration.project === "ifi"
+      ? "New India’s Face Icon registration received"
+      : "New Creator Meet-Up registration received",
+    text: `A new ${registration.project === "ifi" ? "India’s Face Icon" : "Creator Meet-Up"} registration is attached as a CSV file.`,
+    client,
+    mediaPaths: [registration.profile_photo_path, ...(registration.additional_photo_paths || [])].filter(Boolean),
+    bucket: "project-registration-photos"
   });
 }

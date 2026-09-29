@@ -65,11 +65,19 @@ export default function ProjectRegistrationForm({ project }) {
       setRegistration(result);
       setStatus("saved");
       if (isIfi) {
-        setMessage("Your application is received. The registration fee is handled separately.");
-        notify("IFI application received.");
+        setMessage(result.notificationPending
+          ? "Your application is received. The fee is handled separately; its email notification is queued for retry."
+          : "Your application is received. The registration fee is handled separately.");
+        notify(result.notificationPending
+          ? "IFI application received; email notification queued for retry."
+          : "IFI application received.");
       } else {
-        setMessage("Your Creator Meet-Up registration has been received. Keep your reference number for future updates.");
-        notify("Creator Meet-Up registration received.");
+        setMessage(result.notificationPending
+          ? "Your registration is received. Keep your reference number; its email notification is queued for retry."
+          : "Your Creator Meet-Up registration has been received. Keep your reference number for future updates.");
+        notify(result.notificationPending
+          ? "Creator Meet-Up registration received; email notification queued for retry."
+          : "Creator Meet-Up registration received.");
       }
     } catch (error) {
       setStatus("error");
