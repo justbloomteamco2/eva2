@@ -49,7 +49,7 @@ Public submissions use bounded request sizes, Zod validation, same-origin checks
 - **Database and storage:** Supabase
 - **Current hosting:** Vercel
 - **Version control:** GitHub
-- **Cloudflare target:** Cloudflare Workers using the OpenNext adapter; the existing Next.js/Vercel workflow remains available
+- **Cloudflare target:** Cloudflare Workers using the OpenNext adapter. The Wrangler Worker name is `eva2`, matching the existing Cloudflare Worker and its custom domain; the existing Next.js/Vercel workflow remains available
 
 ## Supabase and deployment
 
@@ -67,12 +67,21 @@ The Cloudflare deployment uses `@opennextjs/cloudflare` to adapt this Next.js ap
 2. Copy `.dev.vars.example` to `.dev.vars` and add local values for the Supabase, rate-limit, cron and email variables. `.dev.vars` is ignored by Git; never commit it.
 3. Run `npm run preview` to build the Worker and exercise it locally in the Cloudflare Workers runtime.
 4. In Cloudflare, create or select a Workers account and authenticate Wrangler with `npx wrangler login`.
-5. Configure the Worker's runtime variables and secrets in **Workers & Pages → bardapure-productions → Settings → Variables and Secrets**. Add `SUPABASE_URL`, `ADMIN_EMAIL`, and `FEEDBACK_EMAIL_FROM` as variables; add `SUPABASE_SECRET_KEY`, `RATE_LIMIT_SECRET`, `CRON_SECRET`, and `RESEND_API_KEY` as secrets. `RATE_LIMIT_IP_HEADER=cf-connecting-ip` is already set in `wrangler.jsonc`. Use the matching Supabase project's server-only secret key, plus a Resend API key and sender address on a domain verified with Resend. Do not put secret values in `wrangler.jsonc` or commit them.
-6. Deploy a preview with `npm run deploy` or connect the GitHub repository under **Workers & Pages → Create application → Connect Git repository**. For a Git-based build, use `npm ci` for installation and `npm run deploy` as the build/deploy command. Set the production branch deliberately and add the required encrypted build credentials if Cloudflare requests them.
-7. Test the generated `*.workers.dev` URL before changing DNS. Verify public routes, forms, Supabase writes/storage, email notifications, and both maintenance jobs. Confirm Cloudflare Cron Triggers are present in Worker settings.
-8. Add the purchased domain as a Cloudflare zone. If it is registered elsewhere, change its nameservers at the registrar to the nameservers Cloudflare assigns, then wait until Cloudflare reports the zone as **Active**.
-9. Attach the apex domain and (if desired) `www` as Worker custom domains in **Worker → Settings → Domains & Routes → Add → Custom Domain**. Test HTTPS and the live forms on the custom domain.
-10. Keep Vercel deployed and working until Cloudflare is verified. After DNS cutover, confirm the domain resolves to the Cloudflare Worker, then decide whether to retain Vercel as rollback hosting.
+5. In **Workers & Pages → eva2 → Settings → Variables and Secrets**, add `SUPABASE_URL`, `ADMIN_EMAIL`, and `FEEDBACK_EMAIL_FROM` as variables; add `SUPABASE_SECRET_KEY`, `RATE_LIMIT_SECRET`, `CRON_SECRET`, and `RESEND_API_KEY` as secrets. `RATE_LIMIT_IP_HEADER=cf-connecting-ip` is already set in `wrangler.jsonc`. Use the matching Supabase project's server-only secret key, plus a Resend API key and sender address on a domain verified with Resend. Do not put secret values in `wrangler.jsonc` or commit them.
+6. For the Git-connected Worker build at **Workers & Pages → eva2 → Settings → Builds**, use:
+
+   - Build command: `npm run cf-build`
+   - Deploy command: `npm run cf-deploy`
+   - Root directory: `/`
+   - Production branch: `main`
+
+   These scripts run the OpenNext adapter in its separate build and deploy phases. Do not use `npm run build` plus `npx wrangler deploy`: that skips the OpenNext Worker bundle. The Wrangler `name` in `wrangler.jsonc` must stay `eva2` to match the existing Worker and domain.
+
+7. Start or retry the production deployment after adding those settings and runtime secrets. Alternatively, test/deploy from a terminal with `npm run preview` and `npm run deploy` after `npx wrangler login`.
+8. Test the generated `*.workers.dev` URL before changing DNS. Verify public routes, forms, Supabase writes/storage, email notifications, and both maintenance jobs. Confirm Cloudflare Cron Triggers are present in Worker settings.
+9. Add the purchased domain as a Cloudflare zone. If it is registered elsewhere, change its nameservers at the registrar to the nameservers Cloudflare assigns, then wait until Cloudflare reports the zone as **Active**.
+10. Attach the apex domain and (if desired) `www` as Worker custom domains in **Worker → Settings → Domains & Routes → Add → Custom Domain**. Test HTTPS and the live forms on the custom domain.
+11. Keep Vercel deployed and working until Cloudflare is verified. After DNS cutover, confirm the domain resolves to the Cloudflare Worker, then decide whether to retain Vercel as rollback hosting.
 
 Do not remove `vercel.json` until Vercel is no longer needed; its cron configuration remains useful for rollback. Cloudflare schedules are configured separately in `wrangler.jsonc`. Cron jobs use UTC. When connecting GitHub to Cloudflare, deploy the intended reviewed branch—this local checkout may have uncommitted changes and may need to be synchronized with GitHub first. OpenNext warns that Windows support is limited; if local Worker previews behave inconsistently, run them in WSL or use Cloudflare's Git-based build environment.
 
