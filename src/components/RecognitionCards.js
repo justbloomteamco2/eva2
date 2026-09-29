@@ -29,7 +29,7 @@ function RecognitionCard({ post, index }) {
       href={post.href}
       target="_blank"
       rel="noreferrer"
-      aria-label={`${post.title}. Open the pinned Instagram post.`}
+      aria-label={`${post.title}. Visit Bardapure Productions on Instagram.`}
       style={{ rotateX, rotateY, transformStyle: "preserve-3d" }}
       onPointerMove={tilt}
       onPointerLeave={resetTilt}
@@ -40,9 +40,9 @@ function RecognitionCard({ post, index }) {
       whileHover={reducedMotion ? undefined : { y: -7, scale: 1.015 }}
     >
       <span className="about-post__frame">
-        <span className="about-post__image">
+        <span className="about-post__image about-post__image--poster" style={{ backgroundColor: post.background }}>
           <Image src={post.image} alt={post.alt} fill sizes="(max-width: 640px) 85vw, 35vw" unoptimized />
-          <span className="about-post__open">Open pinned post <ArrowUpRight size={16} /></span>
+          <span className="about-post__open">Visit Instagram <ArrowUpRight size={16} /></span>
         </span>
         <span className="about-post__meta">
           <span className="eyebrow">{post.category}</span>
@@ -56,7 +56,7 @@ function RecognitionCard({ post, index }) {
 export default function RecognitionCards({ posts }) {
   return (
     <div className="about-social__grid recognition-grid">
-      {posts.map((post, index) => <RecognitionCard key={post.href} post={post} index={index} />)}
+      {posts.map((post, index) => <RecognitionCard key={post.image} post={post} index={index} />)}
     </div>
   );
 }

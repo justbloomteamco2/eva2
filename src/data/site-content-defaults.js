@@ -33,7 +33,7 @@ export const siteContentDefaults = {
     portrait: "/images/founder-portrait-event.jpeg",
     socialHeadline: "People behind",
     socialHighlight: "the work.",
-    socialDescription: "Recognition and milestones shared by the team.",
+    socialDescription: "Brand collaborations and moments of recognition shared by the team.",
     posts: aboutInstagramPosts,
     featuredCampaign,
   },

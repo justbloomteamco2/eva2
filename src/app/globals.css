@@ -1208,15 +1208,18 @@ h2 em, h1 em { font-family: var(--serif); font-weight: 400; }
   position: relative;
   display: block;
   overflow: hidden;
-  aspect-ratio: .94;
-  background: var(--paper-dark);
+  aspect-ratio: .563;
+  background: var(--post-background, var(--paper-dark));
 }
+.about-post__image.about-post__image--poster { aspect-ratio: .563; }
 .about-post__image img {
   height: 100%;
-  object-fit: cover;
+  object-fit: contain;
   transition: transform .8s cubic-bezier(.2, .7, .2, 1);
 }
 .about-post:hover .about-post__image img { transform: scale(1.055); }
+.about-post__image--poster img,
+.about-post:hover .about-post__image--poster img { transform: none; }
 .about-post__open {
   position: absolute;
   right: 14px;

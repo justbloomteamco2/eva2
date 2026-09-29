@@ -55,25 +55,20 @@ export const partnerNames = [
 
 export const aboutInstagramPosts = [
   {
-    title: "Recognition from Bandeppa Kashempur",
-    category: "A team milestone",
-    image: "/images/recognition-bandeppa-kashempur.jpeg",
-    alt: "Bardapure Productions team recognition with Bandeppa Kashempur",
+    title: "Celebrating our brand collaborations",
+    category: "Brands / 2025–2026",
+    image: "/images/brand-collaborations-2025-2026.png",
+    alt: "Bardapure Productions poster celebrating brand collaborations with leading brands",
+    background: "#120b06",
     href: "https://www.instagram.com/bardapure_production_official/"
   },
   {
-    title: "A moment of appreciation",
-    category: "Pinned post",
-    image: "/images/instagram/hd-kumaraswamy-appreciation.jpg",
-    alt: "Pinned Instagram appreciation post shared by Bardapure Productions",
-    href: "https://www.instagram.com/p/DVkkDi4D_9H/"
-  },
-  {
-    title: "A milestone for the team",
-    category: "Pinned post",
-    image: "/images/instagram/ishwar-singh-thakur-appreciation.jpg",
-    alt: "Pinned Instagram recognition post shared by Bardapure Productions",
-    href: "https://www.instagram.com/p/DVh6NwZk3VW/"
+    title: "Well-wishes from Bandeppa Kashempur",
+    category: "A moment of recognition",
+    image: "/images/bandeppa-kashempur-blessing.png",
+    alt: "Well-wishes recognizing Bardapure Production from Bandeppa Kashempur, former Minister of Agriculture of Karnataka",
+    background: "#f3e7d2",
+    href: "https://www.instagram.com/bardapure_production_official/"
   }
 ];
 
