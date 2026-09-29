@@ -69,6 +69,22 @@ export const aboutInstagramPosts = [
     alt: "Well-wishes recognizing Bardapure Production from Bandeppa Kashempur, former Minister of Agriculture of Karnataka",
     background: "#f3e7d2",
     href: "https://www.instagram.com/bardapure_production_official/"
+  },
+  {
+    title: "Well-wishes from H. D. Kumaraswamy",
+    category: "A moment of recognition",
+    image: "/images/recognition-hd-kumaraswamy.png",
+    alt: "Well-wishes recognizing Bardapure Production from H. D. Kumaraswamy, Minister of Heavy Industries and Public Enterprises",
+    background: "#f3e7d2",
+    href: "https://www.instagram.com/bardapure_production_official/"
+  },
+  {
+    title: "Well-wishes from Ishwar Singh Thakur",
+    category: "A moment of recognition",
+    image: "/images/recognition-ishwar-singh-thakur.png",
+    alt: "Well-wishes recognizing Bardapure Production from Ishwar Singh Thakur",
+    background: "#f3e7d2",
+    href: "https://www.instagram.com/bardapure_production_official/"
   }
 ];
 
