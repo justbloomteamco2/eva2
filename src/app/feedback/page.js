@@ -1,5 +1,6 @@
 import SiteFrame from "../../components/SiteFrame";
 import ClientFeedbackForm from "../../components/ClientFeedbackForm";
+import CommunityReviews from "../../components/CommunityReviews";
 
 export const metadata = {
   title: "Client Feedback — Bardapure Productions®",
@@ -17,6 +18,7 @@ export default function ClientFeedbackPage() {
         </div>
         <ClientFeedbackForm />
       </section>
+      <CommunityReviews />
     </SiteFrame>
   );
 }

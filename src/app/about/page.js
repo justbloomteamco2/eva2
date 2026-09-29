@@ -1,7 +1,6 @@
 import SiteFrame from "../../components/SiteFrame";
 import { AboutStory } from "../../components/AboutStory";
 import ServicesSection from "../../components/ServicesSection";
-import CommunityReviews from "../../components/CommunityReviews";
 import PartnerMarquee from "../../components/PartnerMarquee";
 import ReachStats from "../../components/ReachStats";
 import { getPublicSiteContent } from "../../lib/site-content";
@@ -22,7 +21,6 @@ export default async function AboutPage() {
       <PartnerMarquee partners={content.partners} />
       <ServicesSection items={content.services} />
       <ReachStats content={content.achievements} />
-      <CommunityReviews />
     </SiteFrame>
   );
 }

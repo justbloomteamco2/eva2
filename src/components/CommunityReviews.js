@@ -5,6 +5,7 @@ import { Heart, MessageCircle } from "lucide-react";
 import { readApiResponse } from "../lib/client-api";
 
 const PREFERENCE_KEY = "bardapure-community-review-category";
+const reviewCategories = ["All", "Community", "Photography", "Events", "Talent"];
 
 function formatReviewTime(review) {
   if (review.isSample) return "Sample";
@@ -18,6 +19,7 @@ export default function CommunityReviews() {
   const [likedIds, setLikedIds] = useState([]);
   const [pinnedId, setPinnedId] = useState("");
   const [preferredCategory, setPreferredCategory] = useState("");
+  const [activeCategory, setActiveCategory] = useState("All");
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [pendingLikeId, setPendingLikeId] = useState("");
@@ -47,13 +49,15 @@ export default function CommunityReviews() {
     loadReviews();
   }, []);
 
-  const sortedReviews = useMemo(() => [...reviews].sort((first, second) => {
+  const sortedReviews = useMemo(() => [...reviews]
+    .filter((review) => activeCategory === "All" || review.category === activeCategory)
+    .sort((first, second) => {
     if (first.id === pinnedId) return -1;
     if (second.id === pinnedId) return 1;
-    if (preferredCategory && first.category === preferredCategory && second.category !== preferredCategory) return -1;
-    if (preferredCategory && second.category === preferredCategory && first.category !== preferredCategory) return 1;
+    if (activeCategory === "All" && preferredCategory && first.category === preferredCategory && second.category !== preferredCategory) return -1;
+    if (activeCategory === "All" && preferredCategory && second.category === preferredCategory && first.category !== preferredCategory) return 1;
     return second.createdAt.localeCompare(first.createdAt) || second.likes - first.likes;
-  }), [pinnedId, preferredCategory, reviews]);
+  }), [activeCategory, pinnedId, preferredCategory, reviews]);
 
   async function submitReview(event) {
     event.preventDefault();
@@ -124,11 +128,11 @@ export default function CommunityReviews() {
   }
 
   return (
-    <section className="testimonials section-pad" id="community-reviews" aria-labelledby="community-reviews-title">
+    <section className="testimonials section-pad community-reviews" id="community-reviews" aria-labelledby="community-reviews-title">
       <div className="route-heading">
         <div>
-          <span className="eyebrow">Community / Reviews</span>
-          <h2 id="community-reviews-title">Stories from the<br /><em>creative community.</em></h2>
+          <span className="eyebrow">The community / In their words</span>
+          <h2 id="community-reviews-title">Notes from people<br /><em>we’ve worked with.</em></h2>
         </div>
       </div>
       <p className="community-reviews__notice">The five initial entries are sample reviews. New reviews and likes are shared with the community; category preferences are saved in this browser.</p>
@@ -150,13 +154,41 @@ export default function CommunityReviews() {
         </button>
         <p className="community-review-form__status" aria-live="polite">{status}</p>
       </form>
-      <div className="community-notes" aria-live="polite">
+      <div className="community-review-feed">
+        <div className="community-review-feed__heading">
+          <h3>Community comments</h3>
+          <span>{reviews.length} {reviews.length === 1 ? "review" : "reviews"}</span>
+        </div>
+        <div className="community-review-filters" role="group" aria-label="Filter reviews by category">
+          {reviewCategories.map((category) => (
+            <button
+              className={activeCategory === category ? "is-active" : ""}
+              key={category}
+              type="button"
+              aria-pressed={activeCategory === category}
+              onClick={() => setActiveCategory(category)}
+            >
+              {category}
+            </button>
+          ))}
+        </div>
+      </div>
+      <div className="community-notes community-notes--feed" aria-live="polite">
         {loading && <p className="community-reviews__loading">Loading community reviews…</p>}
-        {!loading && sortedReviews.map((review, index) => (
-          <article className={`community-note community-note--${index % 2 ? 2 : 1}`} key={review.id}>
-            <span className="community-note__meta"><MessageCircle size={16} /> {review.name} · {review.city} · {formatReviewTime(review)}</span>
-            <blockquote>{review.quote}</blockquote>
-            <span className="community-note__category">{review.category}</span>
+        {!loading && sortedReviews.map((review) => (
+          <article className="community-note community-note--feed" key={review.id}>
+            <div className="community-note__avatar" aria-hidden="true">{review.name.trim().charAt(0).toUpperCase()}</div>
+            <div className="community-note__content">
+              <div className="community-note__byline">
+                <strong>{review.name}</strong>
+                <span>{review.city}</span>
+                <span aria-hidden="true">·</span>
+                <time dateTime={review.createdAt}>{formatReviewTime(review)}</time>
+                {review.isSample && <span className="community-note__sample">Sample</span>}
+              </div>
+              <blockquote>{review.quote}</blockquote>
+              <span className="community-note__category">{review.category}</span>
+            </div>
             <button
               className={`community-note__like${likedIds.includes(review.id) ? " is-liked" : ""}`}
               type="button"
@@ -168,9 +200,11 @@ export default function CommunityReviews() {
               <Heart size={16} fill={likedIds.includes(review.id) ? "currentColor" : "none"} />
               <span>{review.likes}</span>
             </button>
-            <span className="community-note__tail" aria-hidden="true" />
           </article>
         ))}
+        {!loading && sortedReviews.length === 0 && (
+          <p className="community-reviews__empty">No reviews in this category yet. Choose another filter or share your experience.</p>
+        )}
       </div>
     </section>
   );
