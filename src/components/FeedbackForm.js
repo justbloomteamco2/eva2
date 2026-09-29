@@ -4,6 +4,7 @@ import { useState } from "react";
 import { ArrowUpRight, Star } from "lucide-react";
 import { useToast } from "./ToastProvider";
 import { readApiResponse } from "../lib/client-api";
+import FeedbackAttachments from "./FeedbackAttachments";
 
 export default function FeedbackForm() {
   const notify = useToast();
@@ -27,10 +28,10 @@ export default function FeedbackForm() {
     setStatus("sending");
     setMessage("");
     try {
+      formData.set("rating", String(rating));
       const response = await fetch("/api/feedback", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...values, rating })
+        body: formData
       });
       const result = await readApiResponse(response);
       if (!response.ok) throw new Error(result.error || "We couldn’t send your feedback.");
@@ -79,6 +80,7 @@ export default function FeedbackForm() {
         </label>
         <label>What did you enjoy most? <span className="form-field__meta">Optional</span><textarea name="what_went_well" maxLength={900} rows={3} placeholder="The moments, people or details that stood out." /></label>
         <label className="feedback-form__message">What could we improve? <span className="form-field__meta">Share at least one note · 10 characters minimum</span><textarea name="what_to_improve" maxLength={900} rows={3} placeholder="Tell us how we could make a future event better." /></label>
+        <FeedbackAttachments />
         <label className="honeypot" aria-hidden="true">Leave empty<input name="website" tabIndex={-1} autoComplete="off" /></label>
       </div>
       <div className="feedback-form__submit">

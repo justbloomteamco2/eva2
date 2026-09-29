@@ -726,6 +726,20 @@ h2 em, h1 em { font-family: var(--serif); font-weight: 400; }
 .feedback-rating button[aria-pressed="true"] { border-color: var(--gold); background: rgba(176, 138, 69, .13); }
 .feedback-rating button:focus-visible { outline: 2px solid var(--gold); outline-offset: 3px; }
 .feedback-rating__hint { display: block; min-height: 16px; margin-top: 5px; color: var(--muted); font-size: 9px; }
+.feedback-attachments { grid-column: 1 / -1; min-width: 0; border: 1px solid var(--rule); padding: 13px; }
+.feedback-attachments legend { display: flex; align-items: baseline; gap: 7px; color: var(--ink); font-size: 11px; font-weight: 500; }
+.feedback-attachments__picker { display: inline-flex; min-height: 42px; align-items: center; gap: 8px; border: 1px solid var(--rule); padding: 0 12px; color: var(--ink); font-size: 10px; cursor: pointer; transition: border-color .18s ease, background-color .18s ease; }
+.feedback-attachments__picker:hover { border-color: var(--gold); background: rgba(176, 138, 69, .08); }
+.feedback-attachments__picker:focus-within { outline: 2px solid var(--gold); outline-offset: 2px; }
+.feedback-attachments__picker input { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; clip-path: inset(50%); }
+.feedback-attachments__help, .feedback-attachments__error { margin: 7px 0 0; color: var(--muted); font-size: 9px; line-height: 1.5; }
+.feedback-attachments__error { color: #9a332a; }
+.feedback-attachments__list { display: grid; gap: 5px; margin: 10px 0 0; padding: 0; list-style: none; }
+.feedback-attachments__list li { display: flex; min-width: 0; align-items: center; justify-content: space-between; gap: 10px; border-top: 1px solid var(--rule); padding-top: 6px; color: var(--ink); font-size: 9px; }
+.feedback-attachments__list li > span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.feedback-attachments__list small { margin-left: 5px; color: var(--muted); font-size: 8px; }
+.feedback-attachments__list button { display: grid; width: 28px; height: 28px; flex: 0 0 auto; place-items: center; border: 1px solid var(--rule); color: var(--muted); background: transparent; cursor: pointer; }
+.feedback-attachments__list button:hover { border-color: #9a332a; color: #9a332a; }
 .feedback-form__submit { display: flex; align-items: center; gap: 12px; margin-top: 18px; }
 .feedback-form__submit button:disabled { cursor: not-allowed; opacity: .58; }
 .feedback-form__status { margin: 0; color: #356144; font-size: 9px; }

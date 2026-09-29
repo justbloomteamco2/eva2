@@ -4,6 +4,7 @@ import { useState } from "react";
 import { ArrowUpRight, CheckCircle2, Star } from "lucide-react";
 import { readApiResponse } from "../lib/client-api";
 import { useToast } from "./ToastProvider";
+import FeedbackAttachments from "./FeedbackAttachments";
 
 export default function ClientFeedbackForm() {
   const notify = useToast();
@@ -22,14 +23,15 @@ export default function ClientFeedbackForm() {
     }
 
     const form = event.currentTarget;
-    const values = Object.fromEntries(new FormData(form).entries());
+    const formData = new FormData(form);
+    formData.set("type", "client");
+    formData.set("rating", String(rating));
     setStatus("sending");
     setMessage("");
     try {
       const response = await fetch("/api/feedback", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...values, type: "client", rating })
+        body: formData
       });
       const result = await readApiResponse(response);
       if (!response.ok) throw new Error(result.error || "We couldn’t send your feedback.");
@@ -53,7 +55,7 @@ export default function ClientFeedbackForm() {
         <label>Your name <span className="form-field__meta">Required</span><input name="name" required minLength={2} maxLength={100} autoComplete="name" /></label>
         <label>Project / service <span className="form-field__meta">Required</span><input name="client_project" required minLength={2} maxLength={160} placeholder="What did we work on together?" /></label>
         <label>Email <span className="form-field__meta">Add email or phone</span><input name="attendee_email" type="email" maxLength={254} autoComplete="email" /></label>
-        <label>Phone <span className="form-field__meta">Add email or phone</span><input name="attendee_phone" type="tel" inputMode="tel" autoComplete="tel" pattern="[0-9+() .-]{8,20}" maxLength={20} placeholder="+91 12345 67890" /></label>
+        <label>Phone <span className="form-field__meta">Add email or phone</span><input name="attendee_phone" type="tel" inputMode="tel" autoComplete="tel" maxLength={20} placeholder="+91 12345 67890" /></label>
         <fieldset className="feedback-rating">
           <legend>How was working with us? <span className="form-field__meta">Required</span></legend>
           <div role="group" aria-label="Rating from 1 to 5 stars" aria-describedby="client-rating-help">
@@ -66,6 +68,7 @@ export default function ClientFeedbackForm() {
           <span id="client-rating-help" className="feedback-rating__hint">{rating ? `${rating} out of 5 selected` : "Choose a rating"}</span>
         </fieldset>
         <label className="feedback-form__message">Your feedback <span className="form-field__meta">Required · 10 characters minimum</span><textarea name="client_feedback" required minLength={10} maxLength={2000} rows={5} placeholder="What worked well, and what could we do better?" /></label>
+        <FeedbackAttachments />
         <label className="honeypot" aria-hidden="true">Leave empty<input name="website" tabIndex={-1} autoComplete="off" /></label>
       </div>
       <div className="feedback-form__submit">

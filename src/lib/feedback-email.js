@@ -45,19 +45,32 @@ async function sendCsvEmail({ record, columns, type, filename, subject, text }) 
   }
 }
 
-export function sendFeedbackCsvEmail(feedback) {
+export async function sendFeedbackCsvEmail(feedback, client) {
   const isClientFeedback = feedback.feedback_type === "client";
+  let attachmentText = "";
+  if (feedback.media_paths?.length) {
+    const { data, error } = await client.storage.from("feedback-attachments")
+      .createSignedUrls(feedback.media_paths, 60 * 60 * 24 * 7);
+    if (error) throw new Error(`Feedback attachment links could not be created: ${error.message}`);
+    if (!data || data.length !== feedback.media_paths.length || data.some((file) => !file.signedUrl)) {
+      throw new Error("Feedback attachment links could not be created.");
+    }
+    attachmentText = `\n\nPrivate media links (available for 7 days):\n${data.map((file, index) => {
+      const filename = feedback.media_paths[index].split("/").at(-1);
+      return `${filename}: ${file.signedUrl}`;
+    }).join("\n")}`;
+  }
   return sendCsvEmail({
     record: feedback,
     columns: [
       "id", "feedback_type", "name", "attendee_email", "attendee_phone", "client_project",
       "event", "event_date", "rating", "would_attend_again", "what_went_well",
-      "what_to_improve", "message", "created_at"
+      "what_to_improve", "message", "media_paths", "created_at"
     ],
     type: isClientFeedback ? "client-feedback" : "feedback",
     filename: `${isClientFeedback ? "client-feedback" : "feedback"}-${feedback.id}.csv`,
     subject: isClientFeedback ? "New client feedback received" : "New event feedback received",
-    text: `A new ${isClientFeedback ? "client" : "event"} feedback submission is attached as a CSV file.`
+    text: `A new ${isClientFeedback ? "client" : "event"} feedback submission is attached as a CSV file.${attachmentText}`
   });
 }
 

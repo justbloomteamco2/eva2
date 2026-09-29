@@ -215,6 +215,7 @@ alter table public.feedback
   add column if not exists attendee_email text not null default '',
   add column if not exists attendee_phone text not null default '',
   add column if not exists client_project text not null default '',
+  add column if not exists media_paths text[] not null default '{}',
   add column if not exists event_date date,
   add column if not exists would_attend_again text,
   add column if not exists what_went_well text not null default '',
@@ -247,6 +248,9 @@ alter table public.feedback add constraint feedback_client_details_valid check (
     and char_length(message) between 10 and 2000
   )
 );
+alter table public.feedback drop constraint if exists feedback_media_paths_limit;
+alter table public.feedback add constraint feedback_media_paths_limit
+  check (cardinality(media_paths) <= 3);
 alter table public.feedback drop constraint if exists feedback_what_went_well_check;
 alter table public.feedback add constraint feedback_what_went_well_check
   check (char_length(what_went_well) <= 900);
@@ -293,6 +297,28 @@ create index if not exists feedback_status_created_at_idx on public.feedback (st
 create index if not exists feedback_email_pending_idx
   on public.feedback (email_attempted_at, created_at, id)
   where email_sent_at is null;
+
+insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
+values (
+  'feedback-attachments',
+  'feedback-attachments',
+  false,
+  5242880,
+  array['image/jpeg', 'image/png', 'image/webp', 'video/mp4', 'video/webm']
+)
+on conflict (id) do update
+set public = false,
+    file_size_limit = 5242880,
+    allowed_mime_types = array['image/jpeg', 'image/png', 'image/webp', 'video/mp4', 'video/webm'];
+
+drop policy if exists restrict_feedback_attachments_to_server on storage.objects;
+create policy restrict_feedback_attachments_to_server
+on storage.objects
+as restrictive
+for all
+to anon, authenticated
+using (bucket_id <> 'feedback-attachments')
+with check (bucket_id <> 'feedback-attachments');
 
 create table if not exists public.project_registrations (
   id uuid primary key default gen_random_uuid(),
