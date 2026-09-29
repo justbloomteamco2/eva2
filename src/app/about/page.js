@@ -10,7 +10,8 @@ export const dynamic = "force-dynamic";
 
 export const metadata = {
   title: "About Bardapure Productions®",
-  description: "Meet the people and creative network behind Bardapure Productions."
+  description:
+    "Meet the people and creative network behind Bardapure Productions.",
 };
 
 export default async function AboutPage() {
@@ -21,7 +22,6 @@ export default async function AboutPage() {
       <PartnerMarquee partners={content.partners} />
       <ServicesSection items={content.services} />
       <ReachStats content={content.achievements} />
-      <TestimonialsSection items={content.testimonials} />
     </SiteFrame>
   );
 }

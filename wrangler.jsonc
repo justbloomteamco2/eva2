@@ -1,0 +1,37 @@
+{
+	"$schema": "node_modules/wrangler/config-schema.json",
+	"main": "worker.js",
+	"name": "bardapure-productions",
+	"compatibility_date": "2026-09-29",
+	"keep_vars": true,
+	"compatibility_flags": [
+		"nodejs_compat",
+		"global_fetch_strictly_public"
+	],
+	"vars": {
+		"RATE_LIMIT_IP_HEADER": "cf-connecting-ip"
+	},
+	"assets": {
+		"directory": ".open-next/assets",
+		"binding": "ASSETS"
+	},
+	"services": [
+		{
+			// Self-reference service binding, the service name must match the worker name
+			// see https://opennext.js.org/cloudflare/caching
+			"binding": "WORKER_SELF_REFERENCE",
+			"service": "bardapure-productions"
+		}
+	],
+	"images": {
+		// Enable image optimization
+		// see https://opennext.js.org/cloudflare/howtos/image
+		"binding": "IMAGES"
+	},
+	"triggers": {
+		"crons": [
+			"37 3 * * *",
+			"47 3 * * *"
+		]
+	}
+}

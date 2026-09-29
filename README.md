@@ -43,13 +43,38 @@ All API errors use `{ "error": "..." }`; public form submissions return JSON. Th
 
 Public submissions use bounded request sizes, Zod validation, same-origin checks, honeypot fields and rate limiting. Creator photos accept JPEG, PNG and WebP up to 5 MB and stay in a private Supabase Storage bucket.
 
+## Technology and current hosting
+
+- **Application:** Next.js 15 App Router and React
+- **Database and storage:** Supabase
+- **Current hosting:** Vercel
+- **Version control:** GitHub
+- **Cloudflare target:** Cloudflare Workers using the OpenNext adapter; the existing Next.js/Vercel workflow remains available
+
 ## Supabase and deployment
 
-Set `SUPABASE_URL`, the server-only `SUPABASE_SECRET_KEY`, `RATE_LIMIT_SECRET` (at least 32 random characters), `RATE_LIMIT_IP_HEADER`, and the email/cron variables in `.env.local` or Vercel's encrypted environment settings. `SUPABASE_SERVICE_ROLE_KEY` remains a legacy server-side fallback. Never expose a Supabase secret or email-provider credential through a `NEXT_PUBLIC_` variable.
+Set `SUPABASE_URL`, the server-only `SUPABASE_SECRET_KEY`, `RATE_LIMIT_SECRET` (at least 32 random characters), `RATE_LIMIT_IP_HEADER`, and the email/cron variables in `.env.local` or the host's encrypted environment settings. `SUPABASE_SERVICE_ROLE_KEY` remains a legacy server-side fallback. Never expose a Supabase secret or email-provider credential through a `NEXT_PUBLIC_` variable.
 
 The schema enables RLS and denies anonymous/authenticated direct access to enquiries, creator registrations, feedback, events and rate-limit records. Visitors can read published event records only through the filtered API. The creator-photo bucket is private and restricted to server-side access.
 
-Vercel runs the photo-cleanup and feedback-email retry crons once daily. Set `CRON_SECRET` to a random secret of at least 32 characters. When moving to another host, configure an equivalent trusted scheduler and proxy IP header.
+Vercel runs the photo-cleanup and feedback-email retry crons once daily. Cloudflare uses the same UTC schedules in `wrangler.jsonc`; `worker.js` dispatches each trigger to its existing authenticated maintenance route. Set `CRON_SECRET` to the same random secret in the Cloudflare Worker environment.
+
+## Deploying to Cloudflare
+
+The Cloudflare deployment uses `@opennextjs/cloudflare` to adapt this Next.js app to Workers. Use Node.js 22 or newer for install/build/deploy commands. Keep using `npm run dev` for normal development and `npm run build` for the regular Next.js build. The following additional scripts are available:
+
+1. Install exactly the checked-in dependencies with `npm ci`.
+2. Copy `.dev.vars.example` to `.dev.vars` and add local values for the Supabase, rate-limit, cron and email variables. `.dev.vars` is ignored by Git; never commit it.
+3. Run `npm run preview` to build the Worker and exercise it locally in the Cloudflare Workers runtime.
+4. In Cloudflare, create or select a Workers account and authenticate Wrangler with `npx wrangler login`.
+5. Configure the Worker's runtime variables and secrets in **Workers & Pages → bardapure-productions → Settings → Variables and Secrets**. Add `SUPABASE_URL`, `ADMIN_EMAIL`, and `FEEDBACK_EMAIL_FROM` as variables; add `SUPABASE_SECRET_KEY`, `RATE_LIMIT_SECRET`, `CRON_SECRET`, and `RESEND_API_KEY` as secrets. `RATE_LIMIT_IP_HEADER=cf-connecting-ip` is already set in `wrangler.jsonc`. Use the matching Supabase project's server-only secret key, plus a Resend API key and sender address on a domain verified with Resend. Do not put secret values in `wrangler.jsonc` or commit them.
+6. Deploy a preview with `npm run deploy` or connect the GitHub repository under **Workers & Pages → Create application → Connect Git repository**. For a Git-based build, use `npm ci` for installation and `npm run deploy` as the build/deploy command. Set the production branch deliberately and add the required encrypted build credentials if Cloudflare requests them.
+7. Test the generated `*.workers.dev` URL before changing DNS. Verify public routes, forms, Supabase writes/storage, email notifications, and both maintenance jobs. Confirm Cloudflare Cron Triggers are present in Worker settings.
+8. Add the purchased domain as a Cloudflare zone. If it is registered elsewhere, change its nameservers at the registrar to the nameservers Cloudflare assigns, then wait until Cloudflare reports the zone as **Active**.
+9. Attach the apex domain and (if desired) `www` as Worker custom domains in **Worker → Settings → Domains & Routes → Add → Custom Domain**. Test HTTPS and the live forms on the custom domain.
+10. Keep Vercel deployed and working until Cloudflare is verified. After DNS cutover, confirm the domain resolves to the Cloudflare Worker, then decide whether to retain Vercel as rollback hosting.
+
+Do not remove `vercel.json` until Vercel is no longer needed; its cron configuration remains useful for rollback. Cloudflare schedules are configured separately in `wrangler.jsonc`. Cron jobs use UTC. When connecting GitHub to Cloudflare, deploy the intended reviewed branch—this local checkout may have uncommitted changes and may need to be synchronized with GitHub first. OpenNext warns that Windows support is limited; if local Worker previews behave inconsistently, run them in WSL or use Cloudflare's Git-based build environment.
 
 ## Content integrity
 

@@ -1,0 +1,10 @@
+NEXTJS_ENV=development
+SUPABASE_URL=https://your-project.supabase.co
+SUPABASE_SECRET_KEY=replace-with-server-only-secret
+SUPABASE_PUBLISHABLE_KEY=replace-with-publishable-key
+RATE_LIMIT_SECRET=replace-with-random-secret-at-least-32-characters
+RATE_LIMIT_IP_HEADER=cf-connecting-ip
+CRON_SECRET=replace-with-random-secret-at-least-32-characters
+ADMIN_EMAIL=agency.justbloom@gmail.com
+RESEND_API_KEY=replace-with-server-only-resend-api-key
+FEEDBACK_EMAIL_FROM="Bardapure Feedback <feedback@your-verified-domain.example>"

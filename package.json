@@ -2,13 +2,21 @@
   "name": "bardapure-productions",
   "version": "1.0.0",
   "private": true,
+  "engines": {
+    "node": ">=22"
+  },
   "scripts": {
-    "dev": "next dev",
     "build": "next build",
+    "dev": "next dev",
     "start": "next start",
-    "lint": "eslint ."
+    "lint": "eslint .",
+    "preview": "opennextjs-cloudflare build && opennextjs-cloudflare preview",
+    "deploy": "opennextjs-cloudflare build && opennextjs-cloudflare deploy",
+    "upload": "opennextjs-cloudflare build && opennextjs-cloudflare upload",
+    "cf-typegen": "wrangler types --env-interface CloudflareEnv cloudflare-env.d.ts"
   },
   "dependencies": {
+    "@opennextjs/cloudflare": "1.20.6",
     "@supabase/supabase-js": "^2.57.0",
     "framer-motion": "^13.4.4",
     "gsap": "^3.13.0",
@@ -23,9 +31,11 @@
     "@tailwindcss/postcss": "^4.1.13",
     "eslint": "^9.35.0",
     "eslint-config-next": "^15.5.3",
-    "tailwindcss": "^4.1.13"
+    "tailwindcss": "^4.1.13",
+    "wrangler": "4.143.0"
   },
   "overrides": {
-    "postcss": "^8.5.23"
+    "postcss": "^8.5.23",
+    "undici": "7.29.1"
   }
 }
