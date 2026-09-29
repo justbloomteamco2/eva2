@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { allowRateLimitedRequest, getSupabaseAdmin } from "../../../lib/supabase-admin";
 import { hasTrustedOrigin, readBoundedJson } from "../../../lib/http";
+import { rankCommunityReviews } from "../../../lib/community-review-ranking";
 
 export const runtime = "nodejs";
 
@@ -53,11 +54,20 @@ export async function GET(request) {
     client = getSupabaseAdmin();
     const voterId = voterIdFromRequest(request) || randomUUID();
     const voterHash = hashVoterId(voterId);
+    const searchParams = new URL(request.url).searchParams;
+    const requestedCategory = searchParams.get("priorityCategory");
+    const requestedPreference = searchParams.get("preferredCategory");
+    const priorityCategory = categories.includes(requestedCategory) ? requestedCategory : "";
+    const preferredCategory = categories.includes(requestedPreference) ? requestedPreference : "";
+    const requestedFilter = searchParams.get("category");
+    const filterCategory = categories.includes(requestedFilter) ? requestedFilter : "";
+    let reviewsQuery = client.from("community_reviews")
+      .select("id,name,city,category,quote,likes,is_sample,created_at")
+      .order("created_at", { ascending: false })
+      .limit(100);
+    if (filterCategory) reviewsQuery = reviewsQuery.eq("category", filterCategory);
     const [reviewsResult, likesResult] = await Promise.all([
-      client.from("community_reviews")
-        .select("id,name,city,category,quote,likes,is_sample,created_at")
-        .order("created_at", { ascending: false })
-        .limit(6),
+      reviewsQuery,
       client.from("community_review_likes")
         .select("review_id")
         .eq("voter_hash", voterHash)
@@ -65,7 +75,11 @@ export async function GET(request) {
     ]);
     if (reviewsResult.error) throw new Error(`Community reviews could not be loaded: ${reviewsResult.error.message}`);
     if (likesResult.error) throw new Error(`Community review likes could not be loaded: ${likesResult.error.message}`);
-    const reviewIds = (reviewsResult.data || []).map((review) => review.id);
+    const rankedReviews = rankCommunityReviews(
+      (reviewsResult.data || []).map(toReview),
+      { priorityCategory, preferredCategory }
+    ).slice(0, 6);
+    const reviewIds = rankedReviews.map((review) => review.id);
     const repliesResult = reviewIds.length
       ? await client.from("review_replies")
         .select("id,review_id,name,reply_text,created_at")
@@ -77,8 +91,8 @@ export async function GET(request) {
     const secure = new URL(request.url).protocol === "https:";
     const cookie = `${COOKIE_NAME}=${voterId}; Path=/; Max-Age=31536000; HttpOnly; SameSite=Lax${secure ? "; Secure" : ""}`;
     return json({
-      reviews: (reviewsResult.data || []).map((review) => ({
-        ...toReview(review),
+      reviews: rankedReviews.map((review) => ({
+        ...review,
         replies: (repliesResult.data || [])
           .filter((reply) => reply.review_id === review.id)
           .map((reply) => ({

@@ -1544,7 +1544,7 @@ h2 em, h1 em { font-family: var(--serif); font-weight: 400; }
 .community-note__byline { display: flex; flex-wrap: wrap; align-items: baseline; gap: 5px 9px; color: var(--muted); font-size: 11px; }
 .community-note__byline strong { color: var(--ink); font-size: 12px; font-weight: 600; }
 .community-note__byline time { font-size: 10px; }
-.community-note__sample { border-radius: 999px; padding: 3px 8px; background: rgba(170, 135, 80, .14); color: #745a2f; font-size: 9px; letter-spacing: .04em; }
+.community-note__illustrative { border-radius: 999px; padding: 3px 8px; background: rgba(170, 135, 80, .14); color: #745a2f; font-size: 9px; letter-spacing: .04em; }
 .community-note--feed blockquote { margin: 8px 0 10px; font-family: var(--sans); font-size: 14px; line-height: 1.65; }
 .community-note--feed .community-note__category { position: static; display: inline-block; color: var(--muted); font-size: 9px; }
 .community-note--feed .community-note__like {

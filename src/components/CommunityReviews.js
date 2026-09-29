@@ -1,18 +1,33 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { Heart, MessageCircle } from "lucide-react";
+import { usePathname } from "next/navigation";
+import { Heart } from "lucide-react";
 import { createClient } from "@supabase/supabase-js";
 import { readApiResponse } from "../lib/client-api";
+import { getCommunityReviewPriority, rankCommunityReviews } from "../lib/community-review-ranking";
 
 const PREFERENCE_KEY = "bardapure-community-review-category";
 const reviewCategories = ["All", "Community", "Photography", "Events", "Talent"];
 
 function formatReviewTime(review) {
-  if (review.isSample) return "Sample";
-  const createdAt = new Date(review.createdAt);
-  if (Date.now() - createdAt.getTime() < 60_000) return "Just Now";
-  return new Intl.DateTimeFormat("en-IN", { dateStyle: "medium" }).format(createdAt);
+  const elapsed = Date.now() - new Date(review.createdAt).getTime();
+  if (!Number.isFinite(elapsed)) return "Recently";
+  if (elapsed < 60_000) return "Just now";
+
+  const relativeTime = new Intl.RelativeTimeFormat("en", { numeric: "always" });
+  const units = [
+    ["minute", 60_000],
+    ["hour", 3_600_000],
+    ["day", 86_400_000],
+    ["week", 604_800_000],
+    ["month", 2_629_746_000],
+    ["year", 31_556_952_000]
+  ];
+  const [unit, duration] = units.find(([, value], index) =>
+    index === units.length - 1 || elapsed < units[index + 1][1]
+  );
+  return relativeTime.format(-Math.floor(elapsed / duration), unit);
 }
 
 function mapRealtimeReview(row) {
@@ -40,9 +55,10 @@ function mapRealtimeReply(row) {
 }
 
 export default function CommunityReviews() {
+  const pathname = usePathname();
+  const priorityCategory = getCommunityReviewPriority(pathname || "");
   const [reviews, setReviews] = useState([]);
   const [likedIds, setLikedIds] = useState([]);
-  const [pinnedId, setPinnedId] = useState("");
   const [preferredCategory, setPreferredCategory] = useState("");
   const [activeCategory, setActiveCategory] = useState("All");
   const [loading, setLoading] = useState(true);
@@ -54,29 +70,53 @@ export default function CommunityReviews() {
   const [pendingReplies, setPendingReplies] = useState({});
 
   useEffect(() => {
-    let cancelled = false;
-    let supabase;
     try {
       setPreferredCategory(window.localStorage.getItem(PREFERENCE_KEY) || "");
     } catch (error) {
       console.error("Community review preference could not be read:", error);
     }
+  }, []);
 
+  useEffect(() => {
+    let cancelled = false;
     async function loadReviews() {
+      setLoading(true);
       try {
-        const response = await fetch("/api/community-reviews", { cache: "no-store" });
+        const searchParams = new URLSearchParams();
+        if (activeCategory !== "All") {
+          searchParams.set("category", activeCategory);
+        } else if (priorityCategory) {
+          searchParams.set("priorityCategory", priorityCategory);
+        }
+        if (reviewCategories.includes(preferredCategory)) {
+          searchParams.set("preferredCategory", preferredCategory);
+        }
+        const queryString = searchParams.toString();
+        const query = queryString ? `?${queryString}` : "";
+        const response = await fetch(`/api/community-reviews${query}`, { cache: "no-store" });
         const result = await readApiResponse(response);
         if (!response.ok) throw new Error(result.error || "Reviews are temporarily unavailable.");
-        setReviews(result.reviews);
-        setLikedIds(result.likedIds);
-        setPinnedId(result.likedIds[0] || "");
+        if (!cancelled) {
+          setReviews(result.reviews);
+          setLikedIds(result.likedIds);
+        }
       } catch (error) {
-        setStatus(error.message || "Reviews are temporarily unavailable.");
+        if (!cancelled) setStatus(error.message || "Reviews are temporarily unavailable.");
       } finally {
-        setLoading(false);
+        if (!cancelled) setLoading(false);
       }
     }
     loadReviews();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [activeCategory, preferredCategory, priorityCategory]);
+
+  useEffect(() => {
+    let cancelled = false;
+    let supabase;
+
     async function subscribeToLiveChanges() {
       try {
         const response = await fetch("/api/community-reviews/realtime-config", { cache: "no-store" });
@@ -103,8 +143,7 @@ export default function CommunityReviews() {
               return [incoming, ...current.filter((item) =>
                 item.id !== incoming.id && item.id !== optimisticMatch?.id
               )]
-                .sort((first, second) => second.createdAt.localeCompare(first.createdAt))
-                .slice(0, 6);
+                .slice(0, 100);
             });
           })
           .on("postgres_changes", {
@@ -159,15 +198,13 @@ export default function CommunityReviews() {
     };
   }, []);
 
-  const sortedReviews = useMemo(() => [...reviews]
-    .filter((review) => activeCategory === "All" || review.category === activeCategory)
-    .sort((first, second) => {
-    if (first.id === pinnedId) return -1;
-    if (second.id === pinnedId) return 1;
-    if (activeCategory === "All" && preferredCategory && first.category === preferredCategory && second.category !== preferredCategory) return -1;
-    if (activeCategory === "All" && preferredCategory && second.category === preferredCategory && first.category !== preferredCategory) return 1;
-    return second.createdAt.localeCompare(first.createdAt) || second.likes - first.likes;
-  }), [activeCategory, pinnedId, preferredCategory, reviews]);
+  const sortedReviews = useMemo(() => rankCommunityReviews(
+    reviews.filter((review) => activeCategory === "All" || review.category === activeCategory),
+    {
+      priorityCategory: activeCategory === "All" ? priorityCategory : "",
+      preferredCategory: activeCategory === "All" ? preferredCategory : ""
+    }
+  ).slice(0, 6), [activeCategory, preferredCategory, priorityCategory, reviews]);
 
   async function submitReview(event) {
     event.preventDefault();
@@ -189,7 +226,6 @@ export default function CommunityReviews() {
       replies: []
     };
     setReviews((current) => [optimisticReview, ...current].slice(0, 6));
-    setPinnedId(optimisticReview.id);
     setSubmitting(true);
     setStatus("");
     try {
@@ -209,7 +245,6 @@ export default function CommunityReviews() {
       )]
         .sort((first, second) => second.createdAt.localeCompare(first.createdAt))
         .slice(0, 6));
-      setPinnedId(result.review.id);
       setPreferredCategory(result.review.category);
       try {
         window.localStorage.setItem(PREFERENCE_KEY, result.review.category);
@@ -220,7 +255,6 @@ export default function CommunityReviews() {
       form.reset();
     } catch (error) {
       setReviews((current) => current.filter((item) => item.id !== optimisticReview.id));
-      setPinnedId("");
       setStatus(error.message || "We couldn’t save your review. Please try again.");
     } finally {
       setSubmitting(false);
@@ -300,7 +334,6 @@ export default function CommunityReviews() {
         ? { ...item, likes: result.likes }
         : item));
       setLikedIds((current) => current.includes(review.id) ? current : [...current, review.id]);
-      setPinnedId(review.id);
       setPreferredCategory(review.category);
       try {
         window.localStorage.setItem(PREFERENCE_KEY, review.category);
@@ -323,7 +356,7 @@ export default function CommunityReviews() {
           <p className="community-reviews__live" aria-live="polite"><span className={liveStatus === "Live" ? "is-live" : ""} />{liveStatus}</p>
         </div>
       </div>
-      <p className="community-reviews__notice">The five initial entries are sample reviews. New reviews and likes are shared with the community; category preferences are saved in this browser.</p>
+      <p className="community-reviews__notice">Initial entries are illustrative examples, not verified customer testimonials. New reviews and likes are shared with the community; category preferences are saved in this browser.</p>
       <form className="community-review-form" onSubmit={submitReview}>
         <h3>Share your experience</h3>
         <div className="community-review-form__fields">
@@ -345,7 +378,7 @@ export default function CommunityReviews() {
       <div className="community-review-feed">
         <div className="community-review-feed__heading">
           <h3>Community comments</h3>
-          <span>{reviews.length} {reviews.length === 1 ? "review" : "reviews"}</span>
+          <span>{sortedReviews.length} {sortedReviews.length === 1 ? "review" : "reviews"}</span>
         </div>
         <div className="community-review-filters" role="group" aria-label="Filter reviews by category">
           {reviewCategories.map((category) => (
@@ -372,7 +405,7 @@ export default function CommunityReviews() {
                 <span>{review.city}</span>
                 <span aria-hidden="true">·</span>
                 <time dateTime={review.createdAt}>{formatReviewTime(review)}</time>
-                {review.isSample && <span className="community-note__sample">Sample</span>}
+                {review.isSample && <span className="community-note__illustrative">Illustrative</span>}
               </div>
               <blockquote>{review.quote}</blockquote>
               <span className="community-note__category">{review.category}</span>
